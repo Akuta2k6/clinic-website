@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Chi tiết về khoa</title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: Clinic
+  * Template URL: https://bootstrapmade.com/clinic-bootstrap-template/
+  * Updated: Jul 23 2025 with Bootstrap v5.3.7
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body class="department-details-page">
+
+  <header id="header" class="header fixed-top">
+
+    <div class="topbar d-flex align-items-center dark-background">
+      <div class="container d-flex justify-content-center justify-content-md-between">
+        <div class="contact-info d-flex align-items-center">
+          <i class="bi bi-envelope d-flex align-items-center"><a
+              href="mailto:contact@example.com">contact@example.com</a></i>
+          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+84 000 000 0000</span></i>
+        </div>
+        <div class="social-links d-none d-md-flex align-items-center">
+          <a href="#!" class="twitter"><i class="bi bi-twitter-x"></i></a>
+          <a href="#!" class="facebook"><i class="bi bi-facebook"></i></a>
+          <a href="#!" class="instagram"><i class="bi bi-instagram"></i></a>
+          <a href="#!" class="linkedin"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+    </div><!-- End Top Bar -->
+
+    <div class="branding d-flex align-items-cente">
+
+      <div class="container position-relative d-flex align-items-center justify-content-between">
+        <a href="index.html" class="logo d-flex align-items-center">
+          <!-- Uncomment the line below if you also wish to use an image logo -->
+          <!-- <img src="assets/img/logo.webp" alt=""> -->
+          <h1 class="sitename">Bệnh viện Đại học Tôn Đức Thắng</h1>
+        </a>
+
+        <nav id="navmenu" class="navmenu">
+          <ul>
+            <li><a href="index.html">Trang chủ</a></li>
+            <li><a href="about.html">Giới thiệu</a></li>
+            <li class="dropdown"><a href="departments.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul>
+              <li><a href="">Khoa Nội</a></li>  
+              <li><a href="">Khoa Ngoại</a></li>
+              <li><a href="">Khoa Răng Hàm Mặt</a></li>
+              <li><a href="">Khoa Mắt</a></li>
+              <li><a href="">Khoa Tim Mạch</a></li>
+            </ul>
+            </li>
+            <li class="dropdown"><a href="services.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul>
+              <li><a href="">Tim mạch</a></li>
+              <li><a href="">Nội khoa</a></li>
+              <li><a href="">Ngoại khoa</a></li>
+              <li><a href="">Răng hàm mặt</a></li>
+              <li><a href="">Mắt</a></li>
+              <li><a href="">Xét nghiệm</a></li>
+              <li><a href="">Tiêm ngừa</a></li>
+            </ul>
+            </li>
+            <li><a href="doctors.html">Bác sĩ</a></li>
+            <li><a href="contact.html">Liên hệ</a></li>
+            <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul>
+              <li><a href="department-details.html" class="active">Chi tiết khoa</a></li>
+              <li><a href="service-details.html">Chi tiết dịch vụ</a></li>
+              <li><a href="appointment.html">Đặt lịch khám</a></li>
+              <li><a href="testimonials.html">Đánh giá</a></li>
+              <li><a href="faq.html">Câu hỏi thường gặp</a></li>
+              <li><a href="terms.html">Điều khoản</a></li>
+              <li><a href="privacy.html">Chính sách bảo mật</a></li>
+            </ul>
+            </li>
+            <li><a href="login.html">Đăng nhập</a></li>
+          </ul>
+          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+
+      </div>
+
+    </div>
+
+  </header>
+
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="heading">
+        <div class="container">
+          <div class="row d-flex justify-content-center text-center">
+            <div class="col-lg-8">
+              <h1 class="heading-title">Chi tiết khoa</h1>
+              <p class="mb-0">
+                Tìm hiểu thông tin chi tiết về các khoa chuyên môn, dịch vụ khám
+                và đội ngũ bác sĩ. Người bệnh có thể lựa chọn chuyên khoa phù hợp
+                và đặt lịch khám một cách thuận tiện.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="breadcrumbs">
+        <div class="container">
+          <ol>
+            <li><a href="index.html">Trang chủ</a></li>
+            <li class="current">Chi tiết khoa</li>
+          </ol>
+        </div>
+      </nav>
+    </div>
+    <!-- End Page Title -->
+
+    <!-- Department Details Section -->
+    <section id="department-details" class="department-details section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row">
+          <div class="col-xl-6 col-lg-7">
+            <div class="department-hero" data-aos="fade-right" data-aos-delay="200">
+
+              <div class="badge-wrap">
+                <span class="specialty-badge">Khoa Nội</span>
+              </div>
+
+              <h1 class="department-title">Chăm sóc và điều trị Nội khoa</h1>
+
+              <p class="department-intro">
+                Khoa Nội cung cấp các dịch vụ khám, tư vấn và điều trị các bệnh lý
+                nội khoa thường gặp. Đội ngũ bác sĩ hỗ trợ người bệnh trong quá trình
+                thăm khám, chẩn đoán và theo dõi sức khỏe.
+              </p>
+
+              <div class="key-highlights">
+
+                <div class="highlight-item">
+                  <span class="highlight-number">24/7</span>
+                  <span class="highlight-text">Hỗ trợ cấp cứu</span>
+                </div>
+
+                <div class="highlight-item">
+                  <span class="highlight-number">02</span>
+                  <span class="highlight-text">Bác sĩ Nội khoa</span>
+                </div>
+
+                <div class="highlight-item">
+                  <span class="highlight-number">5</span>
+                  <span class="highlight-text">Khoa chuyên môn</span>
+                </div>
+
+              </div>
+
+              <div class="action-group">
+                <a href="appointment.html" class="btn-primary">
+                  Đặt lịch khám
+                </a>
+
+                <a href="services.html" class="btn-secondary">
+                  <span>Xem các dịch vụ</span>
+                  <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="col-xl-6 col-lg-5">
+            <div class="department-visual" data-aos="fade-left" data-aos-delay="300">
+
+              <div class="image-container">
+                <img src="assets/img/health/neurology-2.webp"
+                    alt="Khoa Nội"
+                    class="img-fluid primary-image">
+
+                <div class="floating-card" data-aos="zoom-in" data-aos-delay="500">
+
+                  <div class="card-icon">
+                    <i class="bi bi-heart-pulse"></i>
+                  </div>
+
+                  <div class="card-content">
+                    <h4>Đội ngũ bác sĩ Nội khoa</h4>
+                    <p>
+                      Khám, tư vấn và theo dõi sức khỏe phù hợp với nhu cầu của người bệnh.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Services Overview -->
+        <div class="services-overview" data-aos="fade-up" data-aos-delay="400">
+
+          <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+              <div class="overview-header">
+                <h3>Dịch vụ của Khoa Nội</h3>
+
+                <p>
+                  Khoa Nội cung cấp các dịch vụ khám và chăm sóc sức khỏe,
+                  hỗ trợ người bệnh trong quá trình kiểm tra, chẩn đoán và điều trị.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+
+          <div class="row gy-4 services-grid">
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-heart-pulse"></i>
+                </div>
+
+                <h4>Khám Nội khoa</h4>
+
+                <p>
+                  Thăm khám và tư vấn các vấn đề sức khỏe thuộc nhóm bệnh lý nội khoa.
+                </p>
+
+              </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="550">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+
+                <h4>Kiểm tra sức khỏe</h4>
+
+                <p>
+                  Hỗ trợ kiểm tra và đánh giá tình trạng sức khỏe của người bệnh.
+                </p>
+
+              </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-activity"></i>
+                </div>
+
+                <h4>Theo dõi bệnh lý</h4>
+
+                <p>
+                  Theo dõi tình trạng sức khỏe và hỗ trợ người bệnh trong quá trình điều trị.
+                </p>
+
+              </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="650">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-person-check"></i>
+                </div>
+
+                <h4>Tư vấn sức khỏe</h4>
+
+                <p>
+                  Tư vấn các vấn đề sức khỏe và hướng dẫn người bệnh chăm sóc phù hợp.
+                </p>
+
+              </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="700">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-file-medical"></i>
+                </div>
+
+                <h4>Tư vấn kết quả</h4>
+
+                <p>
+                  Hỗ trợ giải thích và tư vấn dựa trên thông tin khám và kết quả kiểm tra.
+                </p>
+
+              </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="750">
+              <div class="service-item">
+
+                <div class="service-icon">
+                  <i class="bi bi-shield-check"></i>
+                </div>
+
+                <h4>Chăm sóc sức khỏe</h4>
+
+                <p>
+                  Hướng dẫn người bệnh duy trì và theo dõi sức khỏe trong quá trình chăm sóc.
+                </p>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- Expert Care Section -->
+        <div class="expert-care-section" data-aos="fade-up" data-aos-delay="800">
+
+          <div class="row align-items-center">
+
+            <div class="col-lg-5" data-aos="fade-right" data-aos-delay="900">
+
+              <div class="expert-image">
+                <img src="assets/img/health/neurology-4.webp"
+                    alt="Bác sĩ Khoa Nội"
+                    class="img-fluid">
+              </div>
+
+            </div>
+
+
+            <div class="col-lg-7" data-aos="fade-left" data-aos-delay="900">
+
+              <div class="expert-content">
+
+                <h3>Đội ngũ bác sĩ Khoa Nội</h3>
+
+                <p class="lead">
+                  Khoa Nội có đội ngũ bác sĩ hỗ trợ khám, tư vấn và theo dõi
+                  sức khỏe cho người bệnh với quy trình phục vụ thuận tiện.
+                </p>
+
+
+                <div class="expertise-list">
+
+                  <div class="expertise-item">
+                    <i class="bi bi-check2"></i>
+                    <span>Khám và tư vấn các bệnh lý nội khoa</span>
+                  </div>
+
+                  <div class="expertise-item">
+                    <i class="bi bi-check2"></i>
+                    <span>Hỗ trợ kiểm tra và theo dõi sức khỏe</span>
+                  </div>
+
+                  <div class="expertise-item">
+                    <i class="bi bi-check2"></i>
+                    <span>Tư vấn phương hướng chăm sóc phù hợp</span>
+                  </div>
+
+                  <div class="expertise-item">
+                    <i class="bi bi-check2"></i>
+                    <span>Hỗ trợ đặt lịch khám trực tuyến</span>
+                  </div>
+
+                </div>
+
+
+                <div class="contact-info">
+
+                  <div class="contact-item">
+                    <i class="bi bi-telephone"></i>
+
+                    <div>
+                      <span class="contact-label">Liên hệ</span>
+                      <span class="contact-value">+84 000 000 0000</span>
+                    </div>
+                  </div>
+
+
+                  <div class="contact-item">
+                    <i class="bi bi-calendar-check"></i>
+
+                    <div>
+                      <span class="contact-label">Thời gian khám</span>
+                      <span class="contact-value">
+                        Thứ Hai - Thứ Sáu, 7:00 - 17:00
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+    <!-- /Department Details Section -->
+
+  </main>
+
+  <footer id="footer" class="footer-16 footer position-relative">
+
+    <div class="container">
+
+      <div class="footer-main" data-aos="fade-up" data-aos-delay="100">
+        <div class="row align-items-start">
+
+          <!-- Thông tin bệnh viện -->
+          <div class="col-lg-5">
+            <div class="brand-section">
+
+              <a href="index.html" class="logo d-flex align-items-center mb-4">
+                <span class="sitename">Bệnh viện</span>
+              </a>
+
+              <p class="brand-description">
+                Cung cấp dịch vụ khám và chăm sóc sức khỏe với đội ngũ bác sĩ
+                chuyên môn và hệ thống hỗ trợ đặt lịch khám thuận tiện.
+              </p>
+
+              <div class="contact-info mt-5">
+
+                <div class="contact-item">
+                  <i class="bi bi-geo-alt"></i>
+                  <span>19 Đường Nguyễn Hữu Thọ, phường Tân Hưng, Quận 7, TP. Hồ Chí Minh</span>
+                </div>
+
+                <div class="contact-item">
+                  <i class="bi bi-telephone"></i>
+                  <span>+84 000 000 0000</span>
+                </div>
+
+                <div class="contact-item">
+                  <i class="bi bi-envelope"></i>
+                  <span>info@benhvien.vn</span>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Menu Footer -->
+          <div class="col-lg-7">
+            <div class="footer-nav-wrapper">
+
+              <div class="row">
+
+                <!-- Thông tin -->
+                <div class="col-6 col-lg-3">
+                  <div class="nav-column">
+
+                    <h6>Thông tin</h6>
+
+                    <nav class="footer-nav">
+                      <a href="index.html">Trang chủ</a>
+                      <a href="about.html">Giới thiệu</a>
+                      <a href="doctors.html">Bác sĩ</a>
+                      <a href="services.html">Dịch vụ</a>
+                      <a href="contact.html">Liên hệ</a>
+                    </nav>
+
+                  </div>
+                </div>
+
+                <!-- Khoa -->
+                <div class="col-6 col-lg-3">
+                  <div class="nav-column">
+
+                    <h6>Chuyên khoa</h6>
+
+                    <nav class="footer-nav">
+                      <a href="services.html">Khoa Nội</a>
+                      <a href="services.html">Khoa Ngoại</a>
+                      <a href="services.html">Răng Hàm Mặt</a>
+                      <a href="services.html">Khoa Mắt</a>
+                      <a href="services.html">Khoa Tim mạch</a>
+                    </nav>
+
+                  </div>
+                </div>
+
+                <!-- Dịch vụ -->
+                <div class="col-6 col-lg-3">
+                  <div class="nav-column">
+
+                    <h6>Dịch vụ</h6>
+
+                    <nav class="footer-nav">
+                      <a href="appointment.html">Đặt lịch khám</a>
+                      <a href="doctors.html">Tìm bác sĩ</a>
+                      <a href="services.html">Khám chuyên khoa</a>
+                      <a href="contact.html">Liên hệ</a>
+                      <a href="login.html">Đăng nhập</a>
+                    </nav>
+
+                  </div>
+                </div>
+
+                <!-- Hỗ trợ -->
+                <div class="col-6 col-lg-3">
+                  <div class="nav-column">
+
+                    <h6>Hỗ trợ</h6>
+
+                    <nav class="footer-nav">
+                      <a href="appointment.html">Đặt lịch khám</a>
+                      <a href="contact.html">Thông tin liên hệ</a>
+                      <a href="contact.html">Vị trí bệnh viện</a>
+                      <a href="contact.html">Hỗ trợ bệnh nhân</a>
+                      <a href="tel:115">Cấp cứu</a>
+                    </nav>
+
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+
+      <div class="container">
+
+        <div class="bottom-content" data-aos="fade-up" data-aos-delay="300">
+
+          <div class="row align-items-center">
+
+            <div class="col-lg-6">
+              <div class="copyright">
+
+                <p>
+                  © <span class="sitename">Bệnh viện</span>.
+                  All rights reserved.
+                </p>
+
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+
+              <div class="legal-links">
+
+                <a href="#!">Chính sách bảo mật</a>
+                <a href="#!">Điều khoản sử dụng</a>
+                <a href="#!">Chính sách</a>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+  <!-- Scroll Top -->
+  <a href="#!" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+  <script src="assets/vendor/aos/aos.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
