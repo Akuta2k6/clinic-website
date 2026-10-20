@@ -2,9 +2,11 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/database.php';
 
-$maBS = filter_input(INPUT_GET, 'MaBS', FILTER_VALIDATE_INT);
+$maBS = trim($_GET['MaBS'] ?? '');
+
 $ngay = $_GET['NgayKham'] ?? '';
-if (!$maBS || !$ngay) {
+
+if ($maBS === '' || $ngay === '') {
     echo json_encode([]);
     exit;
 }

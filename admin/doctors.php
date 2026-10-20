@@ -1,9 +1,73 @@
 <?php
 require_once __DIR__.'/../auth/check.php'; requireRole('Admin'); require_once __DIR__.'/../config/database.php';
 $error='';
+function taoMaBacSi(PDO $pdo, int $maCK): string
+{
+    // Lấy chữ viết tắt của chuyên khoa
+    $stmt = $pdo->prepare(
+        'SELECT MaVietTat
+         FROM ChuyenKhoa
+         WHERE MaCK = ?'
+    );
+
+    $stmt->execute([$maCK]);
+
+    $prefix = $stmt->fetchColumn();
+
+    if (!$prefix) {
+        throw new Exception('Không tìm thấy mã viết tắt của chuyên khoa.');
+    }
+
+    // Lấy tất cả mã bác sĩ của chuyên khoa đó
+    $stmt = $pdo->prepare(
+        'SELECT MaBS
+         FROM BacSi
+         WHERE MaBS LIKE ?
+         ORDER BY MaBS'
+    );
+
+    $stmt->execute([$prefix . '%']);
+
+    $codes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $usedNumbers = [];
+
+    foreach ($codes as $code) {
+
+        $number = substr($code, strlen($prefix));
+
+        if (ctype_digit($number)) {
+            $usedNumbers[] = (int)$number;
+        }
+    }
+
+    /*
+     * Tìm số nhỏ nhất chưa được sử dụng.
+     *
+     * VD:
+     * N001
+     * N002
+     * N004
+     *
+     * => trả về N003
+     */
+
+    $number = 1;
+
+    while (in_array($number, $usedNumbers, true)) {
+        $number++;
+    }
+
+    return $prefix . str_pad(
+        (string)$number,
+        3,
+        '0',
+        STR_PAD_LEFT
+    );
+}
 if($_SERVER['REQUEST_METHOD']==='POST'){
- $action=$_POST['action']??'';$id=(int)($_POST['MaBS']??0);
- try{
+  $action = $_POST['action'] ?? '';
+  $id = trim($_POST['MaBS'] ?? ''); try{
   if($action==='save'){
     $hoten=trim($_POST['HoTen']??'');$mack=(int)($_POST['MaCK']??0);$email=trim($_POST['Email']??'');$sdt=trim($_POST['SoDienThoai']??'');$hocvi=trim($_POST['HocVi']??'');$chuyenmon=trim($_POST['ChuyenMon']??'');$kn=(int)($_POST['KinhNghiem']??0);
     if($hoten===''||!$mack) throw new Exception('Họ tên và chuyên khoa là bắt buộc.');
@@ -15,7 +79,32 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       $pdo->beginTransaction();
       $pdo->prepare("INSERT INTO TaiKhoan(TenDangNhap,MatKhau,VaiTro) VALUES(?,?,'BacSi')")->execute([$username,password_hash($password,PASSWORD_DEFAULT)]);
       $matk=(int)$pdo->lastInsertId();
-      $pdo->prepare('INSERT INTO BacSi(MaTK,MaCK,HoTen,Email,SoDienThoai,HocVi,ChuyenMon,KinhNghiem) VALUES(?,?,?,?,?,?,?,?)')->execute([$matk,$mack,$hoten,$email?:null,$sdt?:null,$hocvi?:null,$chuyenmon?:null,$kn]);
+      $maBS = taoMaBacSi($pdo, $mack);
+
+      $pdo->prepare(
+          'INSERT INTO BacSi(
+              MaBS,
+              MaTK,
+              MaCK,
+              HoTen,
+              Email,
+              SoDienThoai,
+              HocVi,
+              ChuyenMon,
+              KinhNghiem
+          )
+          VALUES(?,?,?,?,?,?,?,?,?)'
+      )->execute([
+          $maBS,
+          $matk,
+          $mack,
+          $hoten,
+          $email ?: null,
+          $sdt ?: null,
+          $hocvi ?: null,
+          $chuyenmon ?: null,
+          $kn
+      ]);      
       $pdo->commit();
     }
   } elseif($action === 'delete' && $id) {
@@ -51,9 +140,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $pwd=$_POST['NewPassword']??'';if(strlen($pwd)<6)throw new Exception('Mật khẩu mới phải có ít nhất 6 ký tự.');$s=$pdo->prepare('SELECT MaTK FROM BacSi WHERE MaBS=?');$s->execute([$id]);$matk=$s->fetchColumn();if($matk)$pdo->prepare('UPDATE TaiKhoan SET MatKhau=? WHERE MaTK=?')->execute([password_hash($pwd,PASSWORD_DEFAULT),$matk]);
   }
   header('Location: doctors.php');exit;
- }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();$error=$e->getMessage();}
+ }catch(Throwable $e){
+  if($pdo->inTransaction())$pdo->rollBack();
+  $error=$e->getMessage();
+  }
 }
-$edit=null;if(isset($_GET['edit'])){$s=$pdo->prepare('SELECT bs.*,tk.TenDangNhap FROM BacSi bs JOIN TaiKhoan tk ON bs.MaTK=tk.MaTK WHERE bs.MaBS=?');$s->execute([(int)$_GET['edit']]);$edit=$s->fetch();}
+$edit=null;if(isset($_GET['edit'])){$s=$pdo->prepare('SELECT bs.*,tk.TenDangNhap FROM BacSi bs JOIN TaiKhoan tk ON bs.MaTK=tk.MaTK WHERE bs.MaBS=?');
+$s->execute([trim($_GET['edit'])]);
+$edit=$s->fetch();}
 $cks=$pdo->query('SELECT MaCK,TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai=1 ORDER BY TenChuyenKhoa')->fetchAll();
 $rows=$pdo->query('SELECT bs.MaBS,bs.HoTen,bs.Email,bs.SoDienThoai,bs.HocVi,ck.TenChuyenKhoa,bs.TrangThai,tk.TenDangNhap FROM BacSi bs JOIN ChuyenKhoa ck ON bs.MaCK=ck.MaCK JOIN TaiKhoan tk ON bs.MaTK=tk.MaTK ORDER BY bs.MaBS DESC')->fetchAll();
 ?>
