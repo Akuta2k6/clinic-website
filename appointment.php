@@ -1,8 +1,12 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-$chuyenKhoas = $pdo->query('SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai = 1 ORDER BY TenChuyenKhoa')->fetchAll();
+
+$chuyenKhoas = $pdo->query('SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai=1 ORDER BY TenChuyenKhoa')->fetchAll();
+
 $success = isset($_GET['success']);
 $error = $_GET['error'] ?? '';
+$code = $_GET['code'] ?? '';
+$mailStatus = $_GET['mail'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -18,15 +22,35 @@ $error = $_GET['error'] ?? '';
 <div class="container py-5" style="max-width:900px">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Đặt lịch khám</h2>
-    <a href="index.html" class="btn btn-outline-secondary">Trang chủ</a>
+    <div class="d-flex gap-2">
+        <a href="patient/lookup.php" class="btn btn-outline-primary">Tra cứu lịch</a>
+        <a href="index.html" class="btn btn-outline-secondary">Trang chủ</a>
+    </div>
   </div>
 
+  <?php
+  require_once __DIR__ . '/config/database.php';
+
+  $chuyenKhoas = $pdo->query('SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai=1 ORDER BY TenChuyenKhoa')->fetchAll();
+
+  $success = isset($_GET['success']);
+  $error = $_GET['error'] ?? '';
+  $code = $_GET['code'] ?? '';
+  $mailStatus = $_GET['mail'] ?? null;
+  ?>
+
   <?php if ($success): ?>
-    <div class="alert alert-success">Đặt lịch khám thành công.</div>
-  <?php endif; ?>
-  <?php if ($error): ?>
-    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
+    <div class="alert alert-success">
+        <strong>Đặt lịch khám thành công.</strong>
+
+        <?php if ($code): ?>
+            <div class="mt-2">
+                Mã tra cứu của bạn:
+                <strong><?= htmlspecialchars($code) ?></strong>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
   <form action="actions/book-appointment.php" method="post" class="card card-body shadow-sm">
     <div class="row g-3">
@@ -40,7 +64,7 @@ $error = $_GET['error'] ?? '';
       </div>
       <div class="col-md-6">
         <label class="form-label">Email</label>
-        <input type="email" name="Email" class="form-control">
+        <input type="email" name="Email" class="form-control" required>
       </div>
       <div class="col-md-3">
         <label class="form-label">Giới tính</label>

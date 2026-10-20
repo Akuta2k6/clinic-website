@@ -150,31 +150,17 @@ CREATE TABLE LichKham (
 -- =========================================================
 CREATE TABLE DatLich (
     MaDatLich INT AUTO_INCREMENT PRIMARY KEY,
+    MaTraCuu VARCHAR(20) NOT NULL UNIQUE,
     MaBN INT NOT NULL,
     MaLich INT NOT NULL,
     NgayDat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     LyDoKham TEXT,
     TrieuChung TEXT,
-    TrangThai ENUM(
-        'ChoXacNhan',
-        'DaXacNhan',
-        'DaKham',
-        'DaHuy',
-        'VangMat'
-    ) NOT NULL DEFAULT 'ChoXacNhan',
+    TrangThai ENUM('ChoXacNhan','DaXacNhan','DaKham','DaHuy','VangMat') NOT NULL DEFAULT 'ChoXacNhan',
     GhiChu VARCHAR(500),
 
-    CONSTRAINT FK_DatLich_BenhNhan
-        FOREIGN KEY (MaBN)
-        REFERENCES BenhNhan(MaBN)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-
-    CONSTRAINT FK_DatLich_LichKham
-        FOREIGN KEY (MaLich)
-        REFERENCES LichKham(MaLich)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+    CONSTRAINT FK_DatLich_BenhNhan FOREIGN KEY (MaBN) REFERENCES BenhNhan(MaBN) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT FK_DatLich_LichKham FOREIGN KEY (MaLich) REFERENCES LichKham(MaLich) ON UPDATE CASCADE ON DELETE RESTRICT,
 
     UNIQUE KEY uq_benhnhan_lich (MaBN, MaLich),
     INDEX idx_datlich_trangthai (TrangThai),
@@ -286,6 +272,14 @@ VALUES
     (3, 'Phòng 301', 'Tầng 3', 1),
     (4, 'Phòng 401', 'Tầng 4', 1),
     (5, 'Phòng 501', 'Tầng 5', 1);
+
+INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
+VALUES (
+    'admin',
+    '$2y$12$lGssCmiKtp2MD.xHgItwAe7PmgN4jHFVk0aP2dRzbAFAiL7ECxVKu',
+    'Admin',
+    1
+);
 
 -- Password chung: doctor123
 SET @doctor_password = '$2y$12$EPzq8Yw/KMCXY82TCVqUVurvCva705J6.IlmhfwdvxRond4k6NnAq';
