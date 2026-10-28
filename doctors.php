@@ -1,5 +1,17 @@
+<?php
+require_once __DIR__ . '/config/database.php';
+
+$chuyenKhoa = $pdo->query("SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai = 1 ORDER BY MaCK, TenChuyenKhoa")->fetchAll(PDO::FETCH_ASSOC);
+$bacSi = $pdo->query("SELECT bs.MaBS, bs.MaCK, bs.HoTen, bs.HocVi, bs.ChuyenMon, bs.KinhNghiem, bs.Email, bs.SoDienThoai, bs.AnhDaiDien, ck.TenChuyenKhoa FROM BacSi bs INNER JOIN ChuyenKhoa ck ON bs.MaCK = ck.MaCK WHERE bs.TrangThai = 1 AND ck.TrangThai = 1 ORDER BY ck.MaCK, bs.HoTen")->fetchAll(PDO::FETCH_ASSOC);
+function e(?string $value): string { return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'); }
+function anhBacSi(?string $path): string {
+    $path = trim($path ?? '');
+    if ($path !== '' && preg_match('~^assets/uploads/doctors/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)$~i', $path) && is_file(__DIR__ . '/' . $path)) return $path;
+    return 'assets/img/health/doctor.jpg';
+}
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="utf-8">
@@ -92,7 +104,7 @@
               <li><a href="">Tiêm ngừa</a></li>
             </ul>
             </li>
-            <li><a href="doctors.html" class="active">Bác sĩ</a></li>
+            <li><a href="doctors.php" class="active">Bác sĩ</a></li>
             <li><a href="contact.html">Liên hệ</a></li>
             <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -164,260 +176,49 @@
           </div>
         </div>
 
-        <div class="row gy-4">
-
-          <!-- Bác sĩ 1 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-1.webp"
-                    alt="BS. Nguyễn Minh Anh"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Nguyễn Minh Anh</h4>
-                <span class="specialty">Bác sĩ Nội khoa</span>
-
-                <p>
-                  Khám, tư vấn và theo dõi các vấn đề sức khỏe
-                  thuộc chuyên khoa Nội.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Nội</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Bác sĩ 2 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-2.webp"
-                    alt="BS. Trần Hoàng Nam"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Trần Hoàng Nam</h4>
-                <span class="specialty">Bác sĩ Ngoại khoa</span>
-
-                <p>
-                  Khám và tư vấn các vấn đề thuộc chuyên khoa Ngoại,
-                  hỗ trợ người bệnh trong quá trình điều trị.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Ngoại</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Bác sĩ 3 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-3.webp"
-                    alt="BS. Lê Thùy Linh"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Lê Thùy Linh</h4>
-                <span class="specialty">Bác sĩ Răng Hàm Mặt</span>
-
-                <p>
-                  Khám và tư vấn các vấn đề về răng miệng,
-                  chăm sóc và điều trị sức khỏe răng hàm mặt.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Răng Hàm Mặt</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Bác sĩ 4 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-4.webp"
-                    alt="BS. Phạm Minh Tuấn"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Phạm Minh Tuấn</h4>
-                <span class="specialty">Bác sĩ Nhãn khoa</span>
-
-                <p>
-                  Khám, tư vấn và hỗ trợ điều trị các vấn đề
-                  liên quan đến mắt và thị lực.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Mắt</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Bác sĩ 5 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-5.webp"
-                    alt="BS. Nguyễn Hoàng Long"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Nguyễn Hoàng Long</h4>
-                <span class="specialty">Bác sĩ Tim mạch</span>
-
-                <p>
-                  Khám và tư vấn các vấn đề liên quan đến tim mạch,
-                  hỗ trợ theo dõi và chăm sóc sức khỏe tim mạch.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Tim mạch</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-
-          <!-- Bác sĩ 6 -->
-          <div class="col-lg-4 col-md-6">
-            <div class="doctor-card">
-
-              <div class="doctor-image">
-                <img src="assets/img/health/staff-6.webp"
-                    alt="BS. Hoàng Minh Đức"
-                    class="img-fluid">
-
-                <div class="doctor-overlay">
-                  <div class="social-links">
-                    <a href="#!"><i class="bi bi-envelope"></i></a>
-                    <a href="#!"><i class="bi bi-phone"></i></a>
-                  </div>
-                </div>
-              </div>
-
-              <div class="doctor-content">
-                <h4>BS. Hoàng Minh Đức</h4>
-                <span class="specialty">Bác sĩ Nội khoa</span>
-
-                <p>
-                  Khám, tư vấn và theo dõi sức khỏe cho người bệnh
-                  thuộc chuyên khoa Nội.
-                </p>
-
-                <div class="doctor-meta">
-                  <div class="department">
-                    <i class="bi bi-building"></i>
-                    <span>Khoa Nội</span>
-                  </div>
-                </div>
-
-                <a href="appointment.php" class="btn-appointment">
-                  Đặt lịch khám
-                </a>
-              </div>
-
-            </div>
-          </div>
-
+        <style>
+          .specialty-filters { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:-12px 0 36px; }
+          .specialty-filter-btn { background:#fff; color:var(--default-color); border:1px solid #dbe4ea; border-radius:999px; padding:9px 20px; font-weight:600; cursor:pointer; transition:background .2s,color .2s,border-color .2s; }
+          .specialty-filter-btn:hover, .specialty-filter-btn.active { color:var(--contrast-color, #fff); background:var(--accent-color, #1977cc); border-color:var(--accent-color, #1977cc); }
+          .doctor-filter-hidden { display:none !important; }
+        </style>
+        <div class="specialty-filters" role="group" aria-label="Lọc bác sĩ theo chuyên khoa">
+          <button type="button" class="specialty-filter-btn active" data-filter="all" aria-pressed="true">Tất cả</button>
+          <?php foreach ($chuyenKhoa as $khoa): ?>
+            <button type="button" class="specialty-filter-btn" data-filter="<?= (int)$khoa['MaCK'] ?>" aria-pressed="false"><?= e($khoa['TenChuyenKhoa']) ?></button>
+          <?php endforeach; ?>
         </div>
+
+        <div class="row gy-4" id="doctor-list">
+          <?php if (!$bacSi): ?>
+            <div class="col-12 text-center"><p>Hiện chưa có bác sĩ nào được công bố.</p></div>
+          <?php endif; ?>
+          <?php foreach ($bacSi as $bs): ?>
+            <div class="col-lg-4 col-md-6 doctor-filter-item" data-specialty="<?= (int)$bs['MaCK'] ?>">
+              <div class="doctor-card">
+                <div class="doctor-image">
+                  <img src="<?= e(anhBacSi($bs['AnhDaiDien'])) ?>" alt="Ảnh bác sĩ <?= e($bs['HoTen']) ?>" class="img-fluid">
+                  <div class="doctor-overlay">
+                    <div class="social-links">
+                      <?php if (!empty($bs['Email'])): ?><a href="mailto:<?= e($bs['Email']) ?>" aria-label="Email bác sĩ"><i class="bi bi-envelope"></i></a><?php endif; ?>
+                      <?php if (!empty($bs['SoDienThoai'])): ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $bs['SoDienThoai'])) ?>" aria-label="Gọi bác sĩ"><i class="bi bi-phone"></i></a><?php endif; ?>
+                    </div>
+                  </div>
+                </div>
+                <div class="doctor-content">
+                  <h4>BS. <?= e($bs['HoTen']) ?></h4>
+                  <span class="specialty"><?= e($bs['HocVi'] ?: 'Bác sĩ') ?></span>
+                  <p><?= e($bs['ChuyenMon'] ?: 'Khám và tư vấn sức khỏe thuộc ' . $bs['TenChuyenKhoa'] . '.') ?></p>
+                  <div class="doctor-meta">
+                    <div class="department"><i class="bi bi-building"></i><span><?= e($bs['TenChuyenKhoa']) ?></span></div>
+                  </div>
+                  <a href="appointment.php?MaBS=<?= rawurlencode($bs['MaBS']) ?>&amp;MaCK=<?= (int)$bs['MaCK'] ?>" class="btn-appointment">Đặt lịch khám</a>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+        <p id="doctor-filter-empty" class="text-center mt-4" role="status" hidden>Hiện chưa có bác sĩ thuộc chuyên khoa này.</p>
 
       </div>
 
@@ -483,7 +284,7 @@
                     <nav class="footer-nav">
                       <a href="index.html">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
-                      <a href="doctors.html">Bác sĩ</a>
+                      <a href="doctors.php">Bác sĩ</a>
                       <a href="services.html">Dịch vụ</a>
                       <a href="contact.html">Liên hệ</a>
                     </nav>
@@ -516,7 +317,7 @@
 
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
-                      <a href="doctors.html">Tìm bác sĩ</a>
+                      <a href="doctors.php">Tìm bác sĩ</a>
                       <a href="services.html">Khám chuyên khoa</a>
                       <a href="contact.html">Liên hệ</a>
                       <a href="login.php">Đăng nhập</a>
@@ -612,6 +413,30 @@
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const buttons = document.querySelectorAll('.specialty-filter-btn');
+      const doctors = document.querySelectorAll('#doctor-list .doctor-filter-item');
+      const empty = document.getElementById('doctor-filter-empty');
+      buttons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const filter = button.dataset.filter;
+          let visible = 0;
+          buttons.forEach(function (item) {
+            const active = item === button;
+            item.classList.toggle('active', active);
+            item.setAttribute('aria-pressed', String(active));
+          });
+          doctors.forEach(function (doctor) {
+            const show = filter === 'all' || doctor.dataset.specialty === filter;
+            doctor.classList.toggle('doctor-filter-hidden', !show);
+            if (show) visible++;
+          });
+          empty.hidden = visible !== 0;
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>

@@ -7,6 +7,17 @@ $success = isset($_GET['success']);
 $error = $_GET['error'] ?? '';
 $code = $_GET['code'] ?? '';
 $mailStatus = $_GET['mail'] ?? null;
+
+// Chỉ nhận mã bác sĩ và chuyên khoa hợp lệ đang hoạt động.
+$maBSYeuCau = trim((string)($_GET['MaBS'] ?? ''));
+$bacSiChonSan = null;
+if ($maBSYeuCau !== '') {
+    $stmt = $pdo->prepare('SELECT bs.MaBS, bs.MaCK FROM BacSi bs INNER JOIN ChuyenKhoa ck ON bs.MaCK=ck.MaCK WHERE bs.MaBS=? AND bs.TrangThai=1 AND ck.TrangThai=1 LIMIT 1');
+    $stmt->execute([$maBSYeuCau]);
+    $bacSiChonSan = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    // MaCK thực tế từ DB là nguồn tin cậy; không phụ thuộc dữ liệu URL.
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -27,17 +38,6 @@ $mailStatus = $_GET['mail'] ?? null;
         <a href="index.html" class="btn btn-outline-secondary">Trang chủ</a>
     </div>
   </div>
-
-  <?php
-  require_once __DIR__ . '/config/database.php';
-
-  $chuyenKhoas = $pdo->query('SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai=1 ORDER BY TenChuyenKhoa')->fetchAll();
-
-  $success = isset($_GET['success']);
-  $error = $_GET['error'] ?? '';
-  $code = $_GET['code'] ?? '';
-  $mailStatus = $_GET['mail'] ?? null;
-  ?>
 
   <?php if ($success): ?>
     <div class="alert alert-success">
@@ -118,17 +118,42 @@ const department = document.getElementById('MaCK');
 const doctor = document.getElementById('MaBS');
 const dateInput = document.getElementById('NgayKham');
 const schedule = document.getElementById('MaLich');
+const selectedDoctor = <?= json_encode($bacSiChonSan['MaBS'] ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+const selectedDepartment = <?= (int)($bacSiChonSan['MaCK'] ?? 0) ?>;
+let doctorsRequestId = 0;
 
-department.addEventListener('change', async () => {
+async function loadDoctors(preselectedDoctor = '') {
+  const requestId = ++doctorsRequestId;
   doctor.innerHTML = '<option value="">-- Chọn bác sĩ --</option>';
+  doctor.disabled = true;
   schedule.innerHTML = '<option value="">-- Chọn khung giờ --</option>';
   schedule.disabled = true;
-  if (!department.value) { doctor.disabled = true; return; }
-  const res = await fetch(`api/get-doctors.php?MaCK=${department.value}`);
-  const data = await res.json();
-  data.forEach(d => doctor.insertAdjacentHTML('beforeend', `<option value="${d.MaBS}">${d.HoTen}${d.HocVi ? ' - ' + d.HocVi : ''}</option>`));
-  doctor.disabled = false;
-});
+  if (!department.value) return;
+  try {
+    const res = await fetch(`api/get-doctors.php?MaCK=${encodeURIComponent(department.value)}`);
+    if (!res.ok) throw new Error('Không tải được danh sách bác sĩ');
+    const data = await res.json();
+    if (requestId !== doctorsRequestId) return;
+    data.forEach(d => {
+      const option = document.createElement('option');
+      option.value = d.MaBS;
+      option.textContent = d.HoTen + (d.HocVi ? ' - ' + d.HocVi : '');
+      doctor.appendChild(option);
+    });
+    doctor.disabled = false;
+    if (preselectedDoctor && data.some(d => d.MaBS === preselectedDoctor)) {
+      doctor.value = preselectedDoctor;
+      if (dateInput.value) await loadSchedules();
+    }
+  } catch (err) {
+    if (requestId === doctorsRequestId) {
+      doctor.innerHTML = '<option value="">Không tải được bác sĩ, vui lòng thử lại</option>';
+    }
+    console.error(err);
+  }
+}
+
+department.addEventListener('change', () => loadDoctors());
 
 async function loadSchedules() {
   schedule.innerHTML = '<option value="">-- Chọn khung giờ --</option>';
@@ -145,6 +170,10 @@ async function loadSchedules() {
 
 doctor.addEventListener('change', loadSchedules);
 dateInput.addEventListener('change', loadSchedules);
+if (selectedDoctor && selectedDepartment) {
+  department.value = String(selectedDepartment);
+  loadDoctors(selectedDoctor);
+}
 </script>
 </body>
 </html>
