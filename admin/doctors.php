@@ -81,18 +81,52 @@ function xoaAvatarDuocQuanLy(?string $path): void
 if($_SERVER['REQUEST_METHOD']==='POST'){
   $action = $_POST['action'] ?? '';
   $id = trim($_POST['MaBS'] ?? ''); try{
-  if($action==='save'){
-    $hoten=trim($_POST['HoTen']??'');$mack=(int)($_POST['MaCK']??0);$email=trim($_POST['Email']??'');$sdt=trim($_POST['SoDienThoai']??'');$hocvi=trim($_POST['HocVi']??'');$chuyenmon=trim($_POST['ChuyenMon']??'');$kn=(int)($_POST['KinhNghiem']??0);
-    if($hoten===''||!$mack) throw new Exception('Họ tên và chuyên khoa là bắt buộc.');
-    $avatarCu=null;
-    if($id){$s=$pdo->prepare('SELECT AnhDaiDien FROM BacSi WHERE MaBS=?');$s->execute([$id]);$avatarCu=$s->fetchColumn();if($avatarCu===false) throw new Exception('Không tìm thấy bác sĩ.');}
-    if(!$id){$username=trim($_POST['TenDangNhap']??'');$password=$_POST['MatKhau']??'';if($username===''||strlen($password)<6) throw new Exception('Tên đăng nhập và mật khẩu ít nhất 6 ký tự là bắt buộc khi thêm bác sĩ.');}
-    $avatarMoi=luuAvatarBacSi($_FILES['AnhDaiDien'] ?? []);
-    $avatar=$avatarMoi??$avatarCu;
-    if($id){
-      $pdo->prepare('UPDATE BacSi SET MaCK=?,HoTen=?,Email=?,SoDienThoai=?,HocVi=?,ChuyenMon=?,KinhNghiem=?,AnhDaiDien=? WHERE MaBS=?')->execute([$mack,$hoten,$email?:null,$sdt?:null,$hocvi?:null,$chuyenmon?:null,$kn,$avatar,$id]);
-      if($avatarMoi) xoaAvatarDuocQuanLy($avatarCu);
-    }else{
+    if($action==='save'){
+      $hoten=trim($_POST['HoTen']??'');$mack=(int)($_POST['MaCK']??0);$email=trim($_POST['Email']??'');$sdt=trim($_POST['SoDienThoai']??'');$hocvi=trim($_POST['HocVi']??'');$chuyenmon=trim($_POST['ChuyenMon']??'');$kn=(int)($_POST['KinhNghiem']??0);
+      if($hoten===''||!$mack) throw new Exception('Họ tên và chuyên khoa là bắt buộc.');
+      $avatarCu=null;
+      if($id){$s=$pdo->prepare('SELECT AnhDaiDien FROM BacSi WHERE MaBS=?');$s->execute([$id]);$avatarCu=$s->fetchColumn();if($avatarCu===false) throw new Exception('Không tìm thấy bác sĩ.');}
+      if(!$id){$username=trim($_POST['TenDangNhap']??'');$password=$_POST['MatKhau']??'';if($username===''||strlen($password)<6) throw new Exception('Tên đăng nhập và mật khẩu ít nhất 6 ký tự là bắt buộc khi thêm bác sĩ.');}
+      $avatarMoi=luuAvatarBacSi($_FILES['AnhDaiDien'] ?? []);
+      $avatar=$avatarMoi??$avatarCu;
+      if($id){
+      $pdo->beginTransaction();
+
+      $s = $pdo->prepare('SELECT MaCK FROM BacSi WHERE MaBS=? FOR UPDATE');
+      $s->execute([$id]);
+      $bacSiCu = $s->fetch(PDO::FETCH_ASSOC);
+
+      if(!$bacSiCu) {
+          throw new Exception('Không tìm thấy bác sĩ.');
+      }
+
+      $maBSMoi = $id;
+
+      if((int)$bacSiCu['MaCK'] !== $mack) {
+          $maBSMoi = taoMaBacSi($pdo, $mack);
+      }
+
+      $s = $pdo->prepare('UPDATE BacSi SET MaBS=?,MaCK=?,HoTen=?,Email=?,SoDienThoai=?,HocVi=?,ChuyenMon=?,KinhNghiem=?,AnhDaiDien=? WHERE MaBS=?');
+
+      $s->execute([
+          $maBSMoi,
+          $mack,
+          $hoten,
+          $email ?: null,
+          $sdt ?: null,
+          $hocvi ?: null,
+          $chuyenmon ?: null,
+          $kn,
+          $avatar,
+          $id
+      ]);
+
+      $pdo->commit();
+
+      if($avatarMoi) {
+          xoaAvatarDuocQuanLy($avatarCu);
+      }
+  } else{
       $username=trim($_POST['TenDangNhap']??'');$password=$_POST['MatKhau']??'';
       if($username===''||strlen($password)<6) throw new Exception('Tên đăng nhập và mật khẩu ít nhất 6 ký tự là bắt buộc khi thêm bác sĩ.');
       $pdo->beginTransaction();
