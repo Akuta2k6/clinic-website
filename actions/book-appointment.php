@@ -38,11 +38,24 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 try {
     $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare("SELECT * FROM LichKham WHERE MaLich=? FOR UPDATE");
+    $stmt = $pdo->prepare("
+        SELECT *, (NgayKham < CURDATE()) AS NgayDaQua
+        FROM LichKham
+        WHERE MaLich=?
+        FOR UPDATE
+    ");
     $stmt->execute([$maLich]);
     $lich = $stmt->fetch();
 
-    if (!$lich || $lich['TrangThai'] !== 'Mo' || (int)$lich['SoLuongDaDat'] >= (int)$lich['SoLuongToiDa']) {
+    if (!$lich) {
+        throw new RuntimeException('Không tìm thấy lịch khám.');
+    }
+
+    if ((int)$lich['NgayDaQua'] === 1) {
+        throw new RuntimeException('Ngày khám đã qua. Vui lòng chọn ngày khác.');
+    }
+
+    if ($lich['TrangThai'] !== 'Mo' || (int)$lich['SoLuongDaDat'] >= (int)$lich['SoLuongToiDa']) {
         throw new RuntimeException('Khung giờ này đã hết chỗ hoặc không còn mở.');
     }
 

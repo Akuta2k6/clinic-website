@@ -68,6 +68,11 @@ if (!$appointment) {
     exit;
 }
 
+if ($appointment['TrangThai'] === 'DaHuy' && $trangThai !== 'DaHuy') {
+    header('Location: appointments.php');
+    exit;
+}
+
 
 /*
  * Nếu chọn Đã khám:
@@ -95,35 +100,30 @@ if ($trangThai === 'DaHuy') {
         $stmt = $pdo->prepare(
             "UPDATE DatLich
              SET TrangThai='DaHuy'
-             WHERE MaDatLich=?"
+             WHERE MaDatLich=?
+               AND TrangThai IN ('ChoXacNhan', 'DaXacNhan')"
         );
 
         $stmt->execute([
             $maDatLich
         ]);
 
-
-        // Trả lại một chỗ trống cho lịch
-        $stmt = $pdo->prepare(
-            "UPDATE LichKham
-            SET
-                SoLuongDaDat =
-                    GREATEST(SoLuongDaDat - 1, 0),
-
-                TrangThai =
-                    CASE
-                        WHEN TrangThai = 'Day'
-                        THEN 'Mo'
+        if ($stmt->rowCount() > 0) {
+            $stmt = $pdo->prepare(
+                "UPDATE LichKham
+                 SET
+                    SoLuongDaDat = GREATEST(SoLuongDaDat - 1, 0),
+                    TrangThai = CASE
+                        WHEN TrangThai = 'Day' THEN 'Mo'
                         ELSE TrangThai
                     END
+                 WHERE MaLich=?"
+            );
 
-            WHERE MaLich=?
-        ");
-
-        $stmt->execute([
-            $appointment['MaLich']
-        ]);
-
+            $stmt->execute([
+                $appointment['MaLich']
+            ]);
+        }
 
         $pdo->commit();
 
@@ -134,7 +134,6 @@ if ($trangThai === 'DaHuy') {
         throw $e;
     }
 
-
     header('Location: appointments.php');
     exit;
 }
@@ -142,9 +141,10 @@ if ($trangThai === 'DaHuy') {
 
 // Các trạng thái còn lại
 $stmt = $pdo->prepare(
-    'UPDATE DatLich
+    "UPDATE DatLich
      SET TrangThai=?
-     WHERE MaDatLich=?'
+     WHERE MaDatLich=?
+       AND TrangThai <> 'DaHuy'"
 );
 
 $stmt->execute([

@@ -8,9 +8,40 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   if($action==='save'){
    $ngay=$_POST['NgayKham']??'';$bd=$_POST['GioBatDau']??'';$kt=$_POST['GioKetThuc']??'';$mapk=(int)($_POST['MaPK']??0);$max=max(1,(int)($_POST['SoLuongToiDa']??1));$ghichu=trim($_POST['GhiChu']??'');
    if(!$ngay||!$bd||!$kt||!$mapk)throw new Exception('Vui lòng nhập đủ ngày, giờ và phòng khám.');if($kt<=$bd)throw new Exception('Giờ kết thúc phải sau giờ bắt đầu.');if($ngay<date('Y-m-d'))throw new Exception('Không thể tạo lịch trong quá khứ.');
-   $q='SELECT COUNT(*) FROM LichKham WHERE MaBS=? AND NgayKham=? AND TrangThai<>\'Huy\' AND NOT (GioKetThuc<=? OR GioBatDau>=?)'.($id?' AND MaLich<>?':'');$args=[$bs['MaBS'],$ngay,$bd,$kt];if($id)$args[]=$id;$st=$pdo->prepare($q);$st->execute($args);if($st->fetchColumn()>0)throw new Exception('Khung giờ này bị trùng với lịch khác của bạn.');
-   if($id){$st=$pdo->prepare('SELECT SoLuongDaDat FROM LichKham WHERE MaLich=? AND MaBS=?');$st->execute([$id,$bs['MaBS']]);$booked=(int)$st->fetchColumn();if($max<$booked)throw new Exception('Số lượng tối đa không thể nhỏ hơn số đã đặt.');$pdo->prepare('UPDATE LichKham SET MaPK=?,NgayKham=?,GioBatDau=?,GioKetThuc=?,SoLuongToiDa=?,GhiChu=?,TrangThai=IF(SoLuongDaDat>=?,\'Day\',\'Mo\') WHERE MaLich=? AND MaBS=?')->execute([$mapk,$ngay,$bd,$kt,$max,$ghichu?:null,$max,$id,$bs['MaBS']]);}
-   else{$pdo->prepare('INSERT INTO LichKham(MaBS,MaPK,NgayKham,GioBatDau,GioKetThuc,SoLuongToiDa,GhiChu) VALUES(?,?,?,?,?,?,?)')->execute([$bs['MaBS'],$mapk,$ngay,$bd,$kt,$max,$ghichu?:null]);}
+
+   $q='SELECT COUNT(*) FROM LichKham WHERE MaBS=? AND NgayKham=? AND TrangThai<>\'Huy\' AND NOT (GioKetThuc<=? OR GioBatDau>=?)'.($id?' AND MaLich<>?':'');
+   $args=[$bs['MaBS'],$ngay,$bd,$kt];
+   if($id)$args[]=$id;
+   $st=$pdo->prepare($q);
+   $st->execute($args);
+   if($st->fetchColumn()>0)throw new Exception('Khung giờ này bị trùng với lịch khác của bạn.');
+
+    $qPhong = 'SELECT COUNT(*) FROM LichKham
+        WHERE MaPK=?
+        AND NgayKham=?
+        AND TrangThai<>\'Huy\'
+        AND NOT (GioKetThuc<=? OR GioBatDau>=?)'.($id?' AND MaLich<>?':'');
+
+    $argsPhong = [$mapk, $ngay, $bd, $kt];
+
+    if($id) {
+        $argsPhong[] = $id;
+    }
+
+    $st = $pdo->prepare($qPhong);
+    $st->execute($argsPhong);
+
+    if($st->fetchColumn() > 0) {
+        throw new Exception('Phòng khám đã có lịch trong khung giờ này. Vui lòng chọn phòng hoặc thời gian khác.');
+    }
+   
+   if($id){
+    $st=$pdo->prepare('SELECT SoLuongDaDat FROM LichKham WHERE MaLich=? AND MaBS=?');
+    $st->execute([$id,$bs['MaBS']]);
+    $booked=(int)$st->fetchColumn();
+    if($max<$booked)throw new Exception('Số lượng tối đa không thể nhỏ hơn số đã đặt.');
+    $pdo->prepare('UPDATE LichKham SET MaPK=?,NgayKham=?,GioBatDau=?,GioKetThuc=?,SoLuongToiDa=?,GhiChu=?,TrangThai=IF(SoLuongDaDat>=?,\'Day\',\'Mo\') WHERE MaLich=? AND MaBS=?')->execute([$mapk,$ngay,$bd,$kt,$max,$ghichu?:null,$max,$id,$bs['MaBS']]);}
+    else{$pdo->prepare('INSERT INTO LichKham(MaBS,MaPK,NgayKham,GioBatDau,GioKetThuc,SoLuongToiDa,GhiChu) VALUES(?,?,?,?,?,?,?)')->execute([$bs['MaBS'],$mapk,$ngay,$bd,$kt,$max,$ghichu?:null]);}
   }
     elseif ($action === 'delete' && $id) {
 
