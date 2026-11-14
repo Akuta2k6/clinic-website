@@ -115,7 +115,8 @@ try {
             guiEmailXacNhanLich($thongTin);
             $mailStatus = 1;
         }
-     } catch (Throwable $mailError) {
+    } catch (Throwable $mailError) {
+        error_log('[Clinic] Email xác nhận đặt lịch thất bại. Mã tra cứu: ' . $maTraCuu . '. Lỗi: ' . $mailError->getMessage());
         $mailStatus = 0;
     }
 

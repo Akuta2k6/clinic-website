@@ -49,6 +49,11 @@ if ($maBSYeuCau !== '') {
                 <strong><?= htmlspecialchars($code) ?></strong>
             </div>
         <?php endif; ?>
+        <?php if ($mailStatus === '1'): ?>
+            <div class="mt-2">Email xác nhận đã được gửi. Bạn hãy kiểm tra hộp thư đến và thư rác.</div>
+        <?php elseif ($mailStatus === '0'): ?>
+            <div class="mt-2">Lịch khám đã được lưu nhưng email xác nhận chưa gửi được. Vui lòng lưu mã tra cứu ở trên.</div>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 

@@ -8,11 +8,24 @@ $stmt->execute([$_SESSION['user']['MaTK']]);
 $bacSi = $stmt->fetch();
 if (!$bacSi) exit('Không tìm thấy hồ sơ bác sĩ.');
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM DatLich dl JOIN LichKham lk ON dl.MaLich=lk.MaLich WHERE lk.MaBS=? AND lk.NgayKham=CURDATE() AND dl.TrangThai<>'DaHuy'");
+$stmt = $pdo->prepare(
+    "SELECT COUNT(*)
+     FROM DatLich dl
+     JOIN LichKham lk ON dl.MaLich = lk.MaLich
+     WHERE lk.MaBS = ?
+       AND lk.NgayKham = CURDATE()
+       AND dl.TrangThai IN ('ChoXacNhan', 'DaXacNhan')"
+);
 $stmt->execute([$bacSi['MaBS']]);
 $todayCount = (int)$stmt->fetchColumn();
 
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM DatLich dl JOIN LichKham lk ON dl.MaLich=lk.MaLich WHERE lk.MaBS=?');
+$stmt = $pdo->prepare(
+    "SELECT COUNT(*)
+     FROM DatLich dl
+     JOIN LichKham lk ON dl.MaLich = lk.MaLich
+     WHERE lk.MaBS = ?
+       AND dl.TrangThai IN ('ChoXacNhan', 'DaXacNhan')"
+);
 $stmt->execute([$bacSi['MaBS']]);
 $totalCount = (int)$stmt->fetchColumn();
 
@@ -68,11 +81,11 @@ $appointments = $stmt->fetchAll();
             <div class="d-flex justify-content-between">
                 <div>
                     <h2>Xin chào, BS. <?= htmlspecialchars($bacSi['HoTen']) ?></h2>
-                    <div class="row g-3 mt-2"><div class="col-sm-6"><div class="card card-body"><h6 class="text-muted mb-1">Lịch hôm nay</h6><h2 class="mb-0"><?= $todayCount ?></h2></div></div><div class="col-sm-6"><div class="card card-body"><h6 class="text-muted mb-1">Tổng lịch hẹn</h6><h2 class="mb-0"><?= $totalCount ?></h2></div></div></div>
+                    <div class="row g-3 mt-2"><div class="col-sm-6"><div class="card card-body"><h6 class="text-muted mb-1">Lịch hôm nay đang chờ</h6><h2 class="mb-0"><?= $todayCount ?></h2></div></div><div class="col-sm-6"><div class="card card-body"><h6 class="text-muted mb-1">Tổng lịch đang chờ</h6><h2 class="mb-0"><?= $totalCount ?></h2></div></div></div>
                 </div>
                 <a href="../logout.php" class="btn btn-outline-danger h-50">Đăng xuất</a>
             </div>
-            <div class="d-flex gap-2 mb-3">
+            <div class="d-flex gap-3 mb-3">
 
                 <a href="appointments.php"
                 class="btn btn-primary">

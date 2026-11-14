@@ -2,7 +2,15 @@
 require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 require_once __DIR__ . '/../config/database.php';
-$stmt=$pdo->prepare('SELECT MaBS,HoTen FROM BacSi WHERE MaTK=?'); $stmt->execute([$_SESSION['user']['MaTK']]); $bs=$stmt->fetch();
+
+$stmt = $pdo->prepare('SELECT MaBS, HoTen FROM BacSi WHERE MaTK=?');
+$stmt->execute([$_SESSION['user']['MaTK']]);
+$bs = $stmt->fetch();
+
+if (!$bs) {
+    exit('Không tìm thấy hồ sơ bác sĩ.');
+}
+
 $stmt = $pdo->prepare(
     "SELECT
         dl.MaDatLich,
@@ -15,42 +23,68 @@ $stmt = $pdo->prepare(
         dl.LyDoKham,
         dl.TrangThai
     FROM DatLich dl
-    JOIN BenhNhan bn
-        ON dl.MaBN = bn.MaBN
-    JOIN LichKham lk
-        ON dl.MaLich = lk.MaLich
+    JOIN BenhNhan bn ON dl.MaBN = bn.MaBN
+    JOIN LichKham lk ON dl.MaLich = lk.MaLich
     WHERE lk.MaBS = ?
       AND dl.TrangThai IN ('ChoXacNhan', 'DaXacNhan')
-    ORDER BY lk.NgayKham ASC, lk.GioBatDau ASC
-");
-$stmt->execute([$bs['MaBS']]); $rows=$stmt->fetchAll();
+    ORDER BY lk.NgayKham ASC, lk.GioBatDau ASC"
+);
+$stmt->execute([$bs['MaBS']]);
+$rows = $stmt->fetchAll();
+
+$cancelled = isset($_GET['cancelled']);
+$cancelError = isset($_GET['cancel_error']);
+$sent = (int)($_GET['sent'] ?? 0);
+$failed = (int)($_GET['failed'] ?? 0);
+$skipped = (int)($_GET['skipped'] ?? 0);
 ?>
 <!doctype html>
 <html lang="vi">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Lịch khám</title>
-        <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container py-4">
-            <div class="d-flex justify-content-between mb-3">
-                <h2>Lịch khám - <?= htmlspecialchars($bs['HoTen']) ?></h2>
-                <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Quản lý lịch khám</title>
+    <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2>Quản lý lịch khám</h2>
+                <div>BS. <?= htmlspecialchars($bs['HoTen']) ?></div>
             </div>
+            <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
+        </div>
+
+        <?php if ($cancelled): ?>
+            <div class="alert alert-success">
+                Đã hủy lịch khám thành công.
+                Email gửi thành công: <?= $sent ?>;
+                gửi thất bại: <?= $failed ?>;
+                không có email hợp lệ: <?= $skipped ?>.
+            </div>
+        <?php endif; ?>
+
+        <?php if ($cancelError): ?>
+            <div class="alert alert-danger">
+                Không thể hủy lịch khám. Lịch có thể đã được xử lý trước đó hoặc dữ liệu vừa thay đổi. Vui lòng tải lại trang và kiểm tra trạng thái.
+            </div>
+        <?php endif; ?>
+
+        <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
-                <thead><tr>
-                    <th>Bệnh nhân</th>
-                    <th>Liên hệ</th>
-                    <th>Ngày giờ</th>
-                    <th>Lý do</th>
-                    <th>Trạng thái</th>
-                    <th>Hồ sơ</th>
-                    <th>Cập nhật</th>
-                </tr></thead>
+                <thead>
+                    <tr>
+                        <th>Bệnh nhân</th>
+                        <th>Liên hệ</th>
+                        <th>Ngày giờ</th>
+                        <th>Lý do khám</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <?php foreach($rows as $r): ?>
+                    <?php foreach ($rows as $r): ?>
                         <tr>
                             <td><?= htmlspecialchars($r['HoTen']) ?></td>
                             <td>
@@ -58,29 +92,38 @@ $stmt->execute([$bs['MaBS']]); $rows=$stmt->fetchAll();
                                 <?= htmlspecialchars($r['Email'] ?? '') ?>
                             </td>
                             <td>
-                                <?= $r['NgayKham'] ?><br>
-                                <?= substr($r['GioBatDau'],0,5) ?> - <?= substr($r['GioKetThuc'],0,5) ?>
+                                <?= htmlspecialchars($r['NgayKham']) ?><br>
+                                <?= substr($r['GioBatDau'], 0, 5) ?> - <?= substr($r['GioKetThuc'], 0, 5) ?>
                             </td>
                             <td><?= nl2br(htmlspecialchars($r['LyDoKham'] ?? '')) ?></td>
-                            <td><?= $r['TrangThai'] ?></td>
-                            <td><a class="btn btn-sm btn-success" href="medical-record.php?appointment=<?= $r['MaDatLich'] ?>">Khám / Hồ sơ</a></td>
                             <td>
-                                <form action="update-status.php" method="post" class="d-flex gap-2">
-                                    <input type="hidden" name="MaDatLich" value="<?= $r['MaDatLich'] ?>">
-                                    <select name="TrangThai" class="form-select form-select-sm">
-                                        <option>ChoXacNhan</option>
-                                        <option>DaXacNhan</option>
-                                        <option>DaKham</option>
-                                        <option>DaHuy</option>
-                                        <option>VangMat</option>
-                                    </select>
-                                    <button class="btn btn-sm btn-primary">Lưu</button>
-                                </form>
+                                <?php if ($r['TrangThai'] === 'ChoXacNhan'): ?>
+                                    <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                <?php else: ?>
+                                    <span class="badge bg-info text-dark">Đã xác nhận</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-sm btn-success" href="medical-record.php?appointment=<?= (int)$r['MaDatLich'] ?>">Khám</a>
+                                    <form action="update-status.php" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch khám này không? Hệ thống sẽ cập nhật trạng thái và gửi email thông báo cho bệnh nhân.');">
+                                        <input type="hidden" name="MaDatLich" value="<?= (int)$r['MaDatLich'] ?>">
+                                        <input type="hidden" name="TrangThai" value="DaHuy">
+                                        <button type="submit" class="btn btn-sm btn-danger">Hủy lịch</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
+
+                    <?php if (!$rows): ?>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Hiện không có lịch khám đang chờ xử lý.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
-    </body>
+    </div>
+</body>
 </html>
