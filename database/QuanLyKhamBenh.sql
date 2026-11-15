@@ -1,4 +1,15 @@
 -- =========================================================
+-- QUAN LY KHAM BENH - DATABASE TONG HOP THEO PHIEN BAN HIEN TAI
+-- Tuong thich voi MariaDB 10.4.x (XAMPP).
+-- Import mot lan de tao cau truc va du lieu khoi tao.
+-- Khong DROP DATABASE va khong xoa cac bang/ban ghi dang co.
+-- Ngoai tru cot TrieuChung cu (neu ton tai), vi phien ban hien tai da bo cot nay.
+-- =========================================================
+-- Luu y: neu DatLich dang co cot TrieuChung, cot nay se bi xoa
+-- de dong bo voi phien ban hien tai. Hay sao luu truoc khi import.
+-- =========================================================
+
+-- =========================================================
 -- DATABASE: QuanLyKhamBenh
 -- Dùng cho project clinic-website (PHP + MySQL/XAMPP)
 -- Phiên bản MaBS theo chuyên khoa: N001, NG001, RHM001, M001, TM001
@@ -7,9 +18,8 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP DATABASE IF EXISTS quanlykhambenh;
 
-CREATE DATABASE QuanLyKhamBenh
+CREATE DATABASE IF NOT EXISTS QuanLyKhamBenh
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
@@ -21,7 +31,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 1. TÀI KHOẢN
 -- Chỉ Admin và Bác sĩ cần tài khoản
 -- =========================================================
-CREATE TABLE TaiKhoan (
+CREATE TABLE IF NOT EXISTS TaiKhoan (
     MaTK INT AUTO_INCREMENT PRIMARY KEY,
     TenDangNhap VARCHAR(100) NOT NULL UNIQUE,
     MatKhau VARCHAR(255) NOT NULL,
@@ -34,7 +44,7 @@ CREATE TABLE TaiKhoan (
 -- 2. CHUYÊN KHOA
 -- MaVietTat dùng để tự sinh MaBS
 -- =========================================================
-CREATE TABLE ChuyenKhoa (
+CREATE TABLE IF NOT EXISTS ChuyenKhoa (
     MaCK INT AUTO_INCREMENT PRIMARY KEY,
     MaVietTat VARCHAR(10) NOT NULL UNIQUE,
     TenChuyenKhoa VARCHAR(150) NOT NULL UNIQUE,
@@ -47,7 +57,7 @@ CREATE TABLE ChuyenKhoa (
 -- MaBS không AUTO_INCREMENT nữa.
 -- Ví dụ: N001, NG001, RHM001, M001, TM001
 -- =========================================================
-CREATE TABLE BacSi (
+CREATE TABLE IF NOT EXISTS BacSi (
     MaBS VARCHAR(10) PRIMARY KEY,
     MaTK INT NOT NULL UNIQUE,
     MaCK INT NOT NULL,
@@ -82,7 +92,7 @@ CREATE TABLE BacSi (
 -- 4. BỆNH NHÂN
 -- Bệnh nhân không cần tài khoản
 -- =========================================================
-CREATE TABLE BenhNhan (
+CREATE TABLE IF NOT EXISTS BenhNhan (
     MaBN INT AUTO_INCREMENT PRIMARY KEY,
     HoTen VARCHAR(150) NOT NULL,
     GioiTinh VARCHAR(20),
@@ -100,7 +110,7 @@ CREATE TABLE BenhNhan (
 -- =========================================================
 -- 5. PHÒNG KHÁM
 -- =========================================================
-CREATE TABLE PhongKham (
+CREATE TABLE IF NOT EXISTS PhongKham (
     MaPK INT AUTO_INCREMENT PRIMARY KEY,
     TenPhong VARCHAR(100) NOT NULL,
     ViTri VARCHAR(255),
@@ -110,7 +120,7 @@ CREATE TABLE PhongKham (
 -- =========================================================
 -- 6. LỊCH KHÁM / LỊCH LÀM VIỆC CỦA BÁC SĨ
 -- =========================================================
-CREATE TABLE LichKham (
+CREATE TABLE IF NOT EXISTS LichKham (
     MaLich INT AUTO_INCREMENT PRIMARY KEY,
     MaBS VARCHAR(10) NOT NULL,
     MaPK INT NULL,
@@ -148,16 +158,19 @@ CREATE TABLE LichKham (
 -- =========================================================
 -- 7. ĐẶT LỊCH
 -- =========================================================
-CREATE TABLE DatLich (
+CREATE TABLE IF NOT EXISTS DatLich (
     MaDatLich INT AUTO_INCREMENT PRIMARY KEY,
     MaTraCuu VARCHAR(20) NOT NULL UNIQUE,
     MaBN INT NOT NULL,
     MaLich INT NOT NULL,
     NgayDat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     LyDoKham TEXT,
-    TrieuChung TEXT,
     TrangThai ENUM('ChoXacNhan','DaXacNhan','DaKham','DaHuy','VangMat') NOT NULL DEFAULT 'ChoXacNhan',
     GhiChu VARCHAR(500),
+    TrangThaiGuiKetQua ENUM('ChuaGui', 'DangGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChuaGui',
+    ThoiGianThuGuiKetQua DATETIME NULL,
+    ThoiGianGuiKetQua DATETIME NULL,
+    LoiGuiKetQua VARCHAR(500) NULL,
 
     CONSTRAINT FK_DatLich_BenhNhan FOREIGN KEY (MaBN) REFERENCES BenhNhan(MaBN) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT FK_DatLich_LichKham FOREIGN KEY (MaLich) REFERENCES LichKham(MaLich) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -167,16 +180,24 @@ CREATE TABLE DatLich (
     INDEX idx_datlich_ngaydat (NgayDat)
 ) ENGINE=InnoDB;
 
-ALTER TABLE DatLich
-    ADD COLUMN TrangThaiGuiKetQua ENUM('ChuaGui', 'DangGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChuaGui' AFTER GhiChu,
-    ADD COLUMN ThoiGianThuGuiKetQua DATETIME NULL AFTER TrangThaiGuiKetQua,
-    ADD COLUMN ThoiGianGuiKetQua DATETIME NULL AFTER ThoiGianThuGuiKetQua,
-    ADD COLUMN LoiGuiKetQua VARCHAR(500) NULL AFTER ThoiGianGuiKetQua;
+CREATE TABLE IF NOT EXISTS XacMinhHuyLich (
+    MaDatLich INT PRIMARY KEY,
+    MaOTPHash VARCHAR(255) NOT NULL,
+    ThoiGianTao DATETIME NOT NULL,
+    ThoiGianHetHan DATETIME NOT NULL,
+    SoLanNhapSai TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    CONSTRAINT FK_XacMinhHuyLich_DatLich
+        FOREIGN KEY (MaDatLich)
+        REFERENCES DatLich(MaDatLich)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    INDEX idx_xacminhhuylich_hethan (ThoiGianHetHan)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 8. THUỐC
 -- =========================================================
-CREATE TABLE Thuoc (
+CREATE TABLE IF NOT EXISTS Thuoc (
     MaThuoc INT AUTO_INCREMENT PRIMARY KEY,
     TenThuoc VARCHAR(200) NOT NULL,
     DonVi VARCHAR(50),
@@ -194,7 +215,7 @@ CREATE TABLE Thuoc (
 -- 9. HỒ SƠ KHÁM
 -- Mỗi lịch hẹn hoàn thành có tối đa 1 hồ sơ khám
 -- =========================================================
-CREATE TABLE HoSoKham (
+CREATE TABLE IF NOT EXISTS HoSoKham (
     MaHS INT AUTO_INCREMENT PRIMARY KEY,
     MaDatLich INT NOT NULL UNIQUE,
     ThoiGianKham DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -214,7 +235,7 @@ CREATE TABLE HoSoKham (
 -- 10. ĐƠN THUỐC
 -- Mỗi hồ sơ khám có tối đa 1 đơn thuốc
 -- =========================================================
-CREATE TABLE DonThuoc (
+CREATE TABLE IF NOT EXISTS DonThuoc (
     MaDon INT AUTO_INCREMENT PRIMARY KEY,
     MaHS INT NOT NULL UNIQUE,
     NgayKeDon DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -230,7 +251,7 @@ CREATE TABLE DonThuoc (
 -- =========================================================
 -- 11. CHI TIẾT ĐƠN THUỐC
 -- =========================================================
-CREATE TABLE ChiTietDonThuoc (
+CREATE TABLE IF NOT EXISTS ChiTietDonThuoc (
     MaCT INT AUTO_INCREMENT PRIMARY KEY,
     MaDon INT NOT NULL,
     MaThuoc INT NOT NULL,
@@ -256,11 +277,39 @@ CREATE TABLE ChiTietDonThuoc (
 ) ENGINE=InnoDB;
 
 -- =========================================================
--- DỮ LIỆU MẪU
+-- BO SUNG TUONG THICH VOI CAC BAN DATABASE CU
 -- =========================================================
 
--- Chuyên khoa + mã viết tắt dùng để sinh mã bác sĩ
-INSERT INTO ChuyenKhoa
+-- Them cac cot theo doi gui ket qua neu database da ton tai tu phien ban cu.
+ALTER TABLE DatLich
+    ADD COLUMN IF NOT EXISTS TrangThaiGuiKetQua ENUM('ChuaGui', 'DangGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChuaGui' AFTER GhiChu,
+    ADD COLUMN IF NOT EXISTS ThoiGianThuGuiKetQua DATETIME NULL AFTER TrangThaiGuiKetQua,
+    ADD COLUMN IF NOT EXISTS ThoiGianGuiKetQua DATETIME NULL AFTER ThoiGianThuGuiKetQua,
+    ADD COLUMN IF NOT EXISTS LoiGuiKetQua VARCHAR(500) NULL AFTER ThoiGianGuiKetQua;
+
+-- Cot TrieuChung khong con duoc su dung trong phien ban hien tai.
+SET @has_trieu_chung = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'DatLich'
+      AND COLUMN_NAME = 'TrieuChung'
+);
+SET @drop_trieu_chung_sql = IF(
+    @has_trieu_chung > 0,
+    'ALTER TABLE DatLich DROP COLUMN TrieuChung',
+    'SELECT 1'
+);
+PREPARE drop_trieu_chung_stmt FROM @drop_trieu_chung_sql;
+EXECUTE drop_trieu_chung_stmt;
+DEALLOCATE PREPARE drop_trieu_chung_stmt;
+
+-- =========================================================
+-- DU LIEU KHOI TAO: CHUYEN KHOA, PHONG, TAI KHOAN, BAC SI, THUOC
+-- INSERT IGNORE giup khong tao trung du lieu khi import lai.
+-- =========================================================
+
+INSERT IGNORE INTO ChuyenKhoa
     (MaCK, MaVietTat, TenChuyenKhoa, MoTa, TrangThai)
 VALUES
     (1, 'N',   'Khoa Nội',          'Khám và điều trị các bệnh nội khoa', 1),
@@ -269,8 +318,7 @@ VALUES
     (4, 'M',   'Khoa Mắt',          'Khám và điều trị các bệnh về mắt', 1),
     (5, 'TM',  'Khoa Tim Mạch',     'Khám và điều trị các bệnh tim mạch', 1);
 
--- Mỗi tầng có 2 phòng, mỗi bác sĩ được bố trí một phòng riêng
-INSERT INTO PhongKham
+INSERT IGNORE INTO PhongKham
     (MaPK, TenPhong, ViTri, TrangThai)
 VALUES
     (1, 'Phòng 101 - Khoa Nội', 'Tầng 1 - Khu Nội khoa', 1),
@@ -284,111 +332,81 @@ VALUES
     (9, 'Phòng 501 - Khoa Tim Mạch', 'Tầng 5 - Khu Tim Mạch', 1),
     (10, 'Phòng 502 - Khoa Tim Mạch', 'Tầng 5 - Khu Tim Mạch', 1);
 
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES (
-    'admin',
-    '$2y$12$lGssCmiKtp2MD.xHgItwAe7PmgN4jHFVk0aP2dRzbAFAiL7ECxVKu',
-    'Admin',
-    1
-);
-
--- Password chung: doctor123
+-- Mat khau mac dinh: admin / admin123; cac bac si / doctor123.
+SET @admin_password = '$2y$12$lGssCmiKtp2MD.xHgItwAe7PmgN4jHFVk0aP2dRzbAFAiL7ECxVKu';
 SET @doctor_password = '$2y$12$EPzq8Yw/KMCXY82TCVqUVurvCva705J6.IlmhfwdvxRond4k6NnAq';
 
--- KHOA NỘI
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.nguyenminhanh', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
+INSERT IGNORE INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
+VALUES
+    ('admin', @admin_password, 'Admin', 1),
+    ('bs.nguyenminhanh', @doctor_password, 'BacSi', 1),
+    ('bs.tranthuylinh', @doctor_password, 'BacSi', 1),
+    ('bs.lehoangnam', @doctor_password, 'BacSi', 1),
+    ('bs.phamquocbao', @doctor_password, 'BacSi', 1),
+    ('bs.nguyenngocmai', @doctor_password, 'BacSi', 1),
+    ('bs.tranminhkhoa', @doctor_password, 'BacSi', 1),
+    ('bs.lethanhha', @doctor_password, 'BacSi', 1),
+    ('bs.voquanghuy', @doctor_password, 'BacSi', 1),
+    ('bs.phamgiahan', @doctor_password, 'BacSi', 1),
+    ('bs.nguyenduykhang', @doctor_password, 'BacSi', 1);
 
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('N001', @MaTK, 1, 'Nguyễn Minh Anh', 'Nam', '0901000001', 'minhanh@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nội tổng quát', 8, 1);
+INSERT IGNORE INTO BacSi
+    (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
+SELECT 'N001', tk.MaTK, ck.MaCK, 'Nguyễn Minh Anh', 'Nam', '0901000001', 'minhanh@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nội tổng quát', 8, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'N'
+WHERE tk.TenDangNhap = 'bs.nguyenminhanh'
+UNION ALL
+SELECT 'N002', tk.MaTK, ck.MaCK, 'Trần Thùy Linh', 'Nữ', '0901000002', 'thuylinh@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nội tổng quát', 6, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'N'
+WHERE tk.TenDangNhap = 'bs.tranthuylinh'
+UNION ALL
+SELECT 'NG001', tk.MaTK, ck.MaCK, 'Lê Hoàng Nam', 'Nam', '0902000001', 'hoangnam@clinic.vn', 'Bác sĩ chuyên khoa II', 'Ngoại tổng quát', 10, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'NG'
+WHERE tk.TenDangNhap = 'bs.lehoangnam'
+UNION ALL
+SELECT 'NG002', tk.MaTK, ck.MaCK, 'Phạm Quốc Bảo', 'Nam', '0902000002', 'quocbao@clinic.vn', 'Bác sĩ chuyên khoa I', 'Ngoại tổng quát', 7, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'NG'
+WHERE tk.TenDangNhap = 'bs.phamquocbao'
+UNION ALL
+SELECT 'RHM001', tk.MaTK, ck.MaCK, 'Nguyễn Ngọc Mai', 'Nữ', '0903000001', 'ngocmai@clinic.vn', 'Bác sĩ chuyên khoa I', 'Răng Hàm Mặt', 6, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'RHM'
+WHERE tk.TenDangNhap = 'bs.nguyenngocmai'
+UNION ALL
+SELECT 'RHM002', tk.MaTK, ck.MaCK, 'Trần Minh Khoa', 'Nam', '0903000002', 'minhkhoa@clinic.vn', 'Bác sĩ chuyên khoa I', 'Răng Hàm Mặt', 8, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'RHM'
+WHERE tk.TenDangNhap = 'bs.tranminhkhoa'
+UNION ALL
+SELECT 'M001', tk.MaTK, ck.MaCK, 'Lê Thanh Hà', 'Nữ', '0904000001', 'thanhha@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nhãn khoa', 7, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'M'
+WHERE tk.TenDangNhap = 'bs.lethanhha'
+UNION ALL
+SELECT 'M002', tk.MaTK, ck.MaCK, 'Võ Quang Huy', 'Nam', '0904000002', 'quanghuy@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nhãn khoa', 9, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'M'
+WHERE tk.TenDangNhap = 'bs.voquanghuy'
+UNION ALL
+SELECT 'TM001', tk.MaTK, ck.MaCK, 'Phạm Gia Hân', 'Nữ', '0905000001', 'giahan@clinic.vn', 'Bác sĩ chuyên khoa II', 'Tim mạch', 11, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'TM'
+WHERE tk.TenDangNhap = 'bs.phamgiahan'
+UNION ALL
+SELECT 'TM002', tk.MaTK, ck.MaCK, 'Nguyễn Duy Khang', 'Nam', '0905000002', 'duykhang@clinic.vn', 'Bác sĩ chuyên khoa II', 'Tim mạch', 12, 1
+FROM TaiKhoan tk JOIN ChuyenKhoa ck ON ck.MaVietTat = 'TM'
+WHERE tk.TenDangNhap = 'bs.nguyenduykhang';
 
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.tranthuylinh', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('N002', @MaTK, 1, 'Trần Thùy Linh', 'Nữ', '0901000002', 'thuylinh@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nội tổng quát', 6, 1);
-
--- KHOA NGOẠI
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.lehoangnam', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('NG001', @MaTK, 2, 'Lê Hoàng Nam', 'Nam', '0902000001', 'hoangnam@clinic.vn', 'Bác sĩ chuyên khoa II', 'Ngoại tổng quát', 10, 1);
-
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.phamquocbao', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('NG002', @MaTK, 2, 'Phạm Quốc Bảo', 'Nam', '0902000002', 'quocbao@clinic.vn', 'Bác sĩ chuyên khoa I', 'Ngoại tổng quát', 7, 1);
-
--- KHOA RĂNG HÀM MẶT
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.nguyenngocmai', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('RHM001', @MaTK, 3, 'Nguyễn Ngọc Mai', 'Nữ', '0903000001', 'ngocmai@clinic.vn', 'Bác sĩ chuyên khoa I', 'Răng Hàm Mặt', 6, 1);
-
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.tranminhkhoa', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('RHM002', @MaTK, 3, 'Trần Minh Khoa', 'Nam', '0903000002', 'minhkhoa@clinic.vn', 'Bác sĩ chuyên khoa I', 'Răng Hàm Mặt', 8, 1);
-
--- KHOA MẮT
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.lethanhha', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('M001', @MaTK, 4, 'Lê Thanh Hà', 'Nữ', '0904000001', 'thanhha@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nhãn khoa', 7, 1);
-
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.voquanghuy', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('M002', @MaTK, 4, 'Võ Quang Huy', 'Nam', '0904000002', 'quanghuy@clinic.vn', 'Bác sĩ chuyên khoa I', 'Nhãn khoa', 9, 1);
-
--- KHOA TIM MẠCH
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.phamgiahan', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('TM001', @MaTK, 5, 'Phạm Gia Hân', 'Nữ', '0905000001', 'giahan@clinic.vn', 'Bác sĩ chuyên khoa II', 'Tim mạch', 11, 1);
-
-INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai)
-VALUES ('bs.nguyenduykhang', @doctor_password, 'BacSi', 1);
-SET @MaTK = LAST_INSERT_ID();
-
-INSERT INTO BacSi (MaBS, MaTK, MaCK, HoTen, GioiTinh, SoDienThoai, Email, HocVi, ChuyenMon, KinhNghiem, TrangThai)
-VALUES ('TM002', @MaTK, 5, 'Nguyễn Duy Khang', 'Nam', '0905000002', 'duykhang@clinic.vn', 'Bác sĩ chuyên khoa II', 'Tim mạch', 12, 1);
-
--- Thuốc mẫu
-INSERT INTO Thuoc
+INSERT IGNORE INTO Thuoc
     (MaThuoc, TenThuoc, DonVi, SoLuongTon, DonGia, HanSuDung, TrangThai)
 VALUES
-    (1, 'Paracetamol 500mg',  'Viên', 500, 1200, '2028-12-31', 1),
-    (2, 'Amoxicillin 500mg',  'Viên', 300, 2500, '2028-06-30', 1),
-    (3, 'Vitamin C 500mg',    'Viên', 400, 1000, '2028-10-31', 1),
-    (4, 'Omeprazole 20mg',    'Viên', 200, 1800, '2028-09-30', 1),
-    (5, 'Ibuprofen 400mg',    'Viên', 250, 1500, '2028-08-31', 1);
+    (1, 'Paracetamol 500mg', 'Viên', 500, 1200, '2028-12-31', 1),
+    (2, 'Amoxicillin 500mg', 'Viên', 300, 2500, '2028-06-30', 1),
+    (3, 'Vitamin C 500mg', 'Viên', 400, 1000, '2028-10-31', 1),
+    (4, 'Omeprazole 20mg', 'Viên', 200, 1800, '2028-09-30', 1),
+    (5, 'Ibuprofen 400mg', 'Viên', 250, 1500, '2028-08-31', 1);
 
 -- =========================================================
--- LỊCH KHÁM MẪU: 7 NGÀY LIÊN TIẾP KỂ TỪ NGÀY MAI
--- Mỗi bác sĩ có một phòng riêng cố định.
--- Mỗi ngày có 8 ca, mỗi ca kéo dài 1 giờ.
--- Buổi sáng: 07:00-11:00; buổi chiều: 13:00-17:00.
--- Mỗi ca nhận tối đa 1 lượt đặt khám.
+-- LICH KHAM MAU: 7 NGAY LIEN TIEP TU NGAY MAI
+-- 10 bac si x 7 ngay x 8 ca = 560 lich trong database moi.
 -- =========================================================
 
-INSERT INTO LichKham
+INSERT IGNORE INTO LichKham
 (
     MaBS,
     MaPK,
@@ -447,14 +465,17 @@ CROSS JOIN
 WHERE bs.TrangThai = 1;
 
 -- =========================================================
--- KIỂM TRA NHANH SAU KHI IMPORT
+-- KIEM TRA SAU KHI IMPORT
 -- =========================================================
-SELECT 'ChuyenKhoa' AS Bang, COUNT(*) AS SoLuong FROM ChuyenKhoa
-UNION ALL
-SELECT 'BacSi', COUNT(*) FROM BacSi
-UNION ALL
-SELECT 'PhongKham', COUNT(*) FROM PhongKham
-UNION ALL
-SELECT 'Thuoc', COUNT(*) FROM Thuoc
-UNION ALL
-SELECT 'LichKham', COUNT(*) FROM LichKham;
+SELECT 'TaiKhoan' AS Bang, COUNT(*) AS SoLuong FROM TaiKhoan
+UNION ALL SELECT 'ChuyenKhoa', COUNT(*) FROM ChuyenKhoa
+UNION ALL SELECT 'BacSi', COUNT(*) FROM BacSi
+UNION ALL SELECT 'BenhNhan', COUNT(*) FROM BenhNhan
+UNION ALL SELECT 'PhongKham', COUNT(*) FROM PhongKham
+UNION ALL SELECT 'LichKham', COUNT(*) FROM LichKham
+UNION ALL SELECT 'DatLich', COUNT(*) FROM DatLich
+UNION ALL SELECT 'XacMinhHuyLich', COUNT(*) FROM XacMinhHuyLich
+UNION ALL SELECT 'Thuoc', COUNT(*) FROM Thuoc
+UNION ALL SELECT 'HoSoKham', COUNT(*) FROM HoSoKham
+UNION ALL SELECT 'DonThuoc', COUNT(*) FROM DonThuoc
+UNION ALL SELECT 'ChiTietDonThuoc', COUNT(*) FROM ChiTietDonThuoc;

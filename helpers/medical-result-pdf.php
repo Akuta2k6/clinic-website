@@ -15,7 +15,6 @@ function taoPdfKetQuaKham(PDO $pdo, int $maDatLich, string $maBS): string
             dl.MaDatLich,
             dl.MaTraCuu,
             dl.LyDoKham,
-            dl.TrieuChung,
             bn.HoTen AS TenBenhNhan,
             bn.GioiTinh,
             bn.NgaySinh,
@@ -133,7 +132,6 @@ function taoPdfKetQuaKham(PDO $pdo, int $maDatLich, string $maBS): string
         </table>
         <h2>1. THÔNG TIN KHÁM BỆNH</h2>
         <div class="section"><strong>Lý do khám</strong><div class="content">' . $multiline($record['LyDoKham']) . '</div></div>
-        <div class="section"><strong>Triệu chứng</strong><div class="content">' . $multiline($record['TrieuChung']) . '</div></div>
         <div class="section"><strong>Chẩn đoán</strong><div class="content">' . $multiline($record['ChanDoan']) . '</div></div>
         <div class="section"><strong>Kết luận</strong><div class="content">' . $multiline($record['KetLuan']) . '</div></div>
         <div class="section"><strong>Hướng điều trị</strong><div class="content">' . $multiline($record['HuongDieuTri']) . '</div></div>

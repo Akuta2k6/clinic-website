@@ -413,7 +413,6 @@ $canComplete = in_array($a['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && $
         <span>SĐT: <?= htmlspecialchars($a['SoDienThoai'] ?? '', ENT_QUOTES, 'UTF-8') ?> | Email: <?= htmlspecialchars($a['Email'] ?? 'Chưa có', ENT_QUOTES, 'UTF-8') ?></span>
         <span>Ngày khám: <?= htmlspecialchars($a['NgayKham'], ENT_QUOTES, 'UTF-8') ?> <?= substr($a['GioBatDau'], 0, 5) ?> - <?= substr($a['GioKetThuc'], 0, 5) ?></span>
         <span>Lý do: <?= htmlspecialchars($a['LyDoKham'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-        <span>Triệu chứng: <?= htmlspecialchars($a['TrieuChung'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
         <span>Trạng thái lịch khám: <strong><?= htmlspecialchars($a['TrangThai'], ENT_QUOTES, 'UTF-8') ?></strong></span>
     </div>
 
