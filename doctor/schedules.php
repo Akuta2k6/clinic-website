@@ -12,7 +12,61 @@ if (!$bs) {
 }
 
 $error = '';
-$successMessage = isset($_GET['created']) ? 'Đã tạo lịch làm việc thành công.' : '';
+$successMessage = '';
+if (isset($_GET['created'])) {
+    $successMessage = 'Đã tạo lịch làm việc thành công.';
+} elseif (isset($_GET['updated'])) {
+    $successMessage = 'Đã cập nhật lịch làm việc thành công.';
+} elseif (isset($_GET['deleted'])) {
+    $successMessage = 'Đã xóa lịch làm việc thành công.';
+}
+
+$editSchedule = null;
+$formData = [
+    'NgayKham' => '',
+    'GioBatDau' => '',
+    'GioKetThuc' => '',
+    'MaPK' => '',
+    'SoLuongToiDa' => 1,
+    'GhiChu' => ''
+];
+
+if (isset($_GET['edit'])) {
+    $editId = (int)$_GET['edit'];
+
+    if ($editId > 0) {
+        $stmt = $pdo->prepare(
+            "SELECT lk.*,
+                (SELECT COUNT(*) FROM DatLich dl WHERE dl.MaLich = lk.MaLich) AS TongLuotDat
+             FROM LichKham lk
+             WHERE lk.MaLich = ? AND lk.MaBS = ?"
+        );
+        $stmt->execute([$editId, $bs['MaBS']]);
+        $editSchedule = $stmt->fetch();
+
+        if (!$editSchedule) {
+            $error = 'Không tìm thấy lịch làm việc hoặc bạn không có quyền chỉnh sửa lịch này.';
+        } elseif ((int)$editSchedule['TongLuotDat'] > 0) {
+            $error = 'Không thể sửa lịch đã có lượt đặt. Hãy xử lý các lượt đặt trong mục Quản lý lịch khám.';
+            $editSchedule = null;
+        } elseif ($editSchedule['TrangThai'] === 'Huy') {
+            $error = 'Không thể sửa lịch làm việc đã bị hủy.';
+            $editSchedule = null;
+        } elseif ($editSchedule['NgayKham'] < date('Y-m-d')) {
+            $error = 'Không thể chỉnh sửa lịch làm việc trong quá khứ.';
+            $editSchedule = null;
+        } else {
+            $formData = [
+                'NgayKham' => $editSchedule['NgayKham'],
+                'GioBatDau' => substr($editSchedule['GioBatDau'], 0, 5),
+                'GioKetThuc' => substr($editSchedule['GioKetThuc'], 0, 5),
+                'MaPK' => $editSchedule['MaPK'],
+                'SoLuongToiDa' => $editSchedule['SoLuongToiDa'],
+                'GhiChu' => $editSchedule['GhiChu'] ?? ''
+            ];
+        }
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -85,6 +139,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        if ($action === 'update') {
+            $id = (int)($_POST['MaLich'] ?? 0);
+            $ngay = $_POST['NgayKham'] ?? '';
+            $bd = $_POST['GioBatDau'] ?? '';
+            $kt = $_POST['GioKetThuc'] ?? '';
+            $mapk = (int)($_POST['MaPK'] ?? 0);
+            $max = max(1, (int)($_POST['SoLuongToiDa'] ?? 1));
+            $ghichu = trim($_POST['GhiChu'] ?? '');
+
+            if (!$id || !$ngay || !$bd || !$kt || !$mapk) {
+                throw new Exception('Vui lòng nhập đủ ngày, giờ và phòng khám.');
+            }
+
+            if ($kt <= $bd) {
+                throw new Exception('Giờ kết thúc phải sau giờ bắt đầu.');
+            }
+
+            if ($ngay < date('Y-m-d')) {
+                throw new Exception('Không thể cập nhật lịch trong quá khứ.');
+            }
+
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare(
+                'SELECT MaLich, TrangThai
+                 FROM LichKham
+                 WHERE MaLich = ? AND MaBS = ?
+                 FOR UPDATE'
+            );
+            $stmt->execute([$id, $bs['MaBS']]);
+            $currentSchedule = $stmt->fetch();
+
+            if (!$currentSchedule) {
+                throw new Exception('Không tìm thấy lịch làm việc hoặc bạn không có quyền chỉnh sửa lịch này.');
+            }
+
+            if ($currentSchedule['TrangThai'] === 'Huy') {
+                throw new Exception('Không thể chỉnh sửa lịch làm việc đã bị hủy.');
+            }
+
+            $stmt = $pdo->prepare(
+                'SELECT MaDatLich
+                 FROM DatLich
+                 WHERE MaLich = ?
+                 FOR UPDATE'
+            );
+            $stmt->execute([$id]);
+
+            if ($stmt->fetch()) {
+                throw new Exception('Không thể sửa lịch đã có lượt đặt. Hãy xử lý các lượt đặt trong mục Quản lý lịch khám.');
+            }
+
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM PhongKham WHERE MaPK = ? AND TrangThai = 1');
+            $stmt->execute([$mapk]);
+
+            if ((int)$stmt->fetchColumn() === 0) {
+                throw new Exception('Phòng khám không tồn tại hoặc đang bị khóa.');
+            }
+
+            $stmt = $pdo->prepare(
+                "SELECT MaLich
+                 FROM LichKham
+                 WHERE MaBS = ?
+                   AND NgayKham = ?
+                   AND MaLich <> ?
+                   AND TrangThai <> 'Huy'
+                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $stmt->execute([$bs['MaBS'], $ngay, $id, $bd, $kt]);
+
+            if ($stmt->fetch()) {
+                throw new Exception('Khung giờ này bị trùng với lịch làm việc khác của bạn.');
+            }
+
+            $stmt = $pdo->prepare(
+                "SELECT MaLich
+                 FROM LichKham
+                 WHERE MaPK = ?
+                   AND NgayKham = ?
+                   AND MaLich <> ?
+                   AND TrangThai <> 'Huy'
+                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $stmt->execute([$mapk, $ngay, $id, $bd, $kt]);
+
+            if ($stmt->fetch()) {
+                throw new Exception('Phòng khám đã có lịch trong khung giờ này. Vui lòng chọn phòng hoặc thời gian khác.');
+            }
+
+            $stmt = $pdo->prepare(
+                "UPDATE LichKham
+                 SET MaPK = ?,
+                     NgayKham = ?,
+                     GioBatDau = ?,
+                     GioKetThuc = ?,
+                     SoLuongToiDa = ?,
+                     GhiChu = ?,
+                     TrangThai = 'Mo'
+                 WHERE MaLich = ? AND MaBS = ?"
+            );
+            $stmt->execute([
+                $mapk,
+                $ngay,
+                $bd,
+                $kt,
+                $max,
+                $ghichu ?: null,
+                $id,
+                $bs['MaBS']
+            ]);
+
+            $pdo->commit();
+
+            header('Location: schedules.php?updated=1');
+            exit;
+        }
+
         if ($action === 'delete') {
             $id = (int)($_POST['MaLich'] ?? 0);
 
@@ -127,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            header('Location: schedules.php');
+            header('Location: schedules.php?deleted=1');
             exit;
         }
 
@@ -138,6 +313,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $error = $e->getMessage();
+        if (in_array($action, ['save', 'update'], true)) {
+            $formData = [
+                'NgayKham' => $_POST['NgayKham'] ?? '',
+                'GioBatDau' => $_POST['GioBatDau'] ?? '',
+                'GioKetThuc' => $_POST['GioKetThuc'] ?? '',
+                'MaPK' => $_POST['MaPK'] ?? '',
+                'SoLuongToiDa' => $_POST['SoLuongToiDa'] ?? 1,
+                'GhiChu' => $_POST['GhiChu'] ?? ''
+            ];
+            if ($action === 'update') {
+                $editId = (int)($_POST['MaLich'] ?? 0);
+                $stmt = $pdo->prepare(
+                    "SELECT lk.*,
+                        (SELECT COUNT(*) FROM DatLich dl WHERE dl.MaLich = lk.MaLich) AS TongLuotDat
+                     FROM LichKham lk
+                     WHERE lk.MaLich = ? AND lk.MaBS = ?"
+                );
+                $stmt->execute([$editId, $bs['MaBS']]);
+                $editSchedule = $stmt->fetch();
+            }
+        }
     }
 }
 
@@ -164,6 +360,20 @@ $rows = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Quản lý lịch làm việc</title>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .schedule-actions {
+            width: 1%;
+            white-space: nowrap;
+        }
+        .schedule-notes {
+            min-width: 260px;
+        }
+        .schedule-actions .action-note {
+            display: inline-block;
+            max-width: 125px;
+            white-space: normal;
+        }
+    </style>
 </head>
 <body>
     <div class="container py-4">
@@ -171,7 +381,7 @@ $rows = $stmt->fetchAll();
             <div>
                 <h2>Quản lý lịch làm việc</h2>
                 <div>BS. <?= htmlspecialchars($bs['HoTen']) ?></div>
-                <small class="text-muted">Tạo lịch mới hoặc xóa lịch chưa có bệnh nhân đặt.</small>
+                <small class="text-muted">Tạo, chỉnh sửa hoặc xóa lịch chưa có bệnh nhân đặt.</small>
             </div>
             <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
         </div>
@@ -185,41 +395,49 @@ $rows = $stmt->fetchAll();
         <?php endif; ?>
 
         <form method="post" class="card card-body mb-4">
-            <input type="hidden" name="action" value="save">
-            <h5 class="mb-3">Tạo lịch làm việc mới</h5>
+            <input type="hidden" name="action" value="<?= $editSchedule ? 'update' : 'save' ?>">
+            <?php if ($editSchedule): ?>
+                <input type="hidden" name="MaLich" value="<?= (int)$editSchedule['MaLich'] ?>">
+            <?php endif; ?>
+            <h5 class="mb-3"><?= $editSchedule ? 'Chỉnh sửa lịch làm việc' : 'Tạo lịch làm việc mới' ?></h5>
             <div class="row g-2">
                 <div class="col-md-2">
                     <label class="form-label">Ngày khám</label>
-                    <input type="date" min="<?= date('Y-m-d') ?>" name="NgayKham" class="form-control" required>
+                    <input type="date" min="<?= date('Y-m-d') ?>" name="NgayKham" class="form-control" value="<?= htmlspecialchars((string)$formData['NgayKham']) ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Giờ bắt đầu</label>
-                    <input type="time" name="GioBatDau" class="form-control" required>
+                    <input type="time" name="GioBatDau" class="form-control" value="<?= htmlspecialchars((string)$formData['GioBatDau']) ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Giờ kết thúc</label>
-                    <input type="time" name="GioKetThuc" class="form-control" required>
+                    <input type="time" name="GioKetThuc" class="form-control" value="<?= htmlspecialchars((string)$formData['GioKetThuc']) ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Phòng khám</label>
                     <select name="MaPK" class="form-select" required>
                         <option value="">Chọn phòng</option>
                         <?php foreach ($rooms as $room): ?>
-                            <option value="<?= (int)$room['MaPK'] ?>"><?= htmlspecialchars($room['TenPhong']) ?></option>
+                            <option value="<?= (int)$room['MaPK'] ?>" <?= (string)$formData['MaPK'] === (string)$room['MaPK'] ? 'selected' : '' ?>><?= htmlspecialchars($room['TenPhong']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Số lượng tối đa</label>
-                    <input type="number" min="1" name="SoLuongToiDa" class="form-control" value="1" required>
+                    <input type="number" min="1" name="SoLuongToiDa" class="form-control" value="<?= (int)$formData['SoLuongToiDa'] ?>" required>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-primary w-100">Tạo lịch</button>
+                    <button class="btn btn-primary w-100"><?= $editSchedule ? 'Cập nhật lịch' : 'Tạo lịch' ?></button>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Ghi chú</label>
-                    <input name="GhiChu" class="form-control" placeholder="Ghi chú (không bắt buộc)">
+                    <input name="GhiChu" class="form-control" value="<?= htmlspecialchars((string)$formData['GhiChu']) ?>" placeholder="Ghi chú (không bắt buộc)">
                 </div>
+                <?php if ($editSchedule): ?>
+                    <div class="col-12 d-flex justify-content-end">
+                        <a href="schedules.php" class="btn btn-outline-secondary">Hủy chỉnh sửa</a>
+                    </div>
+                <?php endif; ?>
             </div>
         </form>
 
@@ -232,8 +450,8 @@ $rows = $stmt->fetchAll();
                         <th>Phòng</th>
                         <th>Đã đặt/Tối đa</th>
                         <th>Trạng thái</th>
-                        <th>Ghi chú</th>
-                        <th>Thao tác</th>
+                        <th class="schedule-notes">Ghi chú</th>
+                        <th class="schedule-actions">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -252,16 +470,21 @@ $rows = $stmt->fetchAll();
                                     <span class="badge bg-success">Đang mở</span>
                                 <?php endif; ?>
                             </td>
-                            <td><?= htmlspecialchars($row['GhiChu'] ?? '') ?></td>
-                            <td>
+                            <td class="schedule-notes"><?= htmlspecialchars($row['GhiChu'] ?? '') ?></td>
+                            <td class="schedule-actions">
                                 <?php if ((int)$row['TongLuotDat'] === 0): ?>
-                                    <form method="post" onsubmit="return confirm('Bạn có chắc muốn xóa lịch làm việc chưa có bệnh nhân đặt này?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="MaLich" value="<?= (int)$row['MaLich'] ?>">
-                                        <button class="btn btn-sm btn-outline-danger">Xóa lịch</button>
-                                    </form>
+                                    <div class="d-flex flex-nowrap gap-1">
+                                        <?php if ($row['TrangThai'] !== 'Huy' && $row['NgayKham'] >= date('Y-m-d')): ?>
+                                            <a href="schedules.php?edit=<?= (int)$row['MaLich'] ?>" class="btn btn-sm btn-outline-primary">Sửa</a>
+                                        <?php endif; ?>
+                                        <form method="post" class="m-0" onsubmit="return confirm('Bạn có chắc muốn xóa lịch làm việc chưa có bệnh nhân đặt này?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="MaLich" value="<?= (int)$row['MaLich'] ?>">
+                                            <button class="btn btn-sm btn-outline-danger">Xóa lịch</button>
+                                        </form>
+                                    </div>
                                 <?php else: ?>
-                                    <span class="text-muted">Đã có lượt đặt. Xử lý tại Quản lý lịch khám.</span>
+                                    <span class="text-muted small action-note">Đã có lượt đặt. Xử lý tại Quản lý lịch khám.</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
