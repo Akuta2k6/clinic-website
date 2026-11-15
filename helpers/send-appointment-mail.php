@@ -117,6 +117,83 @@ function guiEmailHuyLichKham(array $data): void
 }
 
 
+function guiEmailOTPHuyLich(array $data, string $otp): void
+{
+    $config = require __DIR__ . '/../config/mail.php';
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $config['host'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $config['username'];
+    $mail->Password = $config['password'];
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = $config['port'];
+    $mail->CharSet = 'UTF-8';
+    $mail->setFrom($config['from_email'], $config['from_name']);
+    $mail->addAddress($data['Email'], $data['HoTen']);
+    $mail->isHTML(true);
+    $mail->Subject = 'Mã xác minh hủy lịch khám - ' . $data['MaTraCuu'];
+
+    $ngayKham = date('d/m/Y', strtotime($data['NgayKham']));
+    $gioKham = substr($data['GioBatDau'], 0, 5) . ' - ' . substr($data['GioKetThuc'], 0, 5);
+    $mail->Body = '
+        <h2>Xác minh yêu cầu hủy lịch khám</h2>
+        <p>Xin chào <strong>' . htmlspecialchars($data['HoTen'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong>,</p>
+        <p>Chúng tôi nhận được yêu cầu hủy lịch khám của bạn.</p>
+        <p>Mã xác minh của bạn là:</p>
+        <p style="font-size:30px;font-weight:bold;letter-spacing:8px">' . htmlspecialchars($otp) . '</p>
+        <p>Mã có hiệu lực trong <strong>10 phút</strong> và chỉ sử dụng được một lần.</p>
+        <p><strong>Mã tra cứu:</strong> ' . htmlspecialchars($data['MaTraCuu'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+        <p><strong>Bác sĩ:</strong> ' . htmlspecialchars($data['TenBacSi'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+        <p><strong>Ngày khám:</strong> ' . $ngayKham . '</p>
+        <p><strong>Thời gian:</strong> ' . $gioKham . '</p>
+        <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email và không chia sẻ mã xác minh cho người khác.</p>
+    ';
+    $mail->AltBody = "Mã xác minh hủy lịch khám: {$otp}\nMã có hiệu lực trong 10 phút và chỉ sử dụng một lần.\nMã tra cứu: {$data['MaTraCuu']}\nBác sĩ: {$data['TenBacSi']}\nNgày khám: {$ngayKham}\nThời gian: {$gioKham}";
+    $mail->send();
+}
+
+function guiEmailBenhNhanHuyLichThanhCong(array $data): void
+{
+    $config = require __DIR__ . '/../config/mail.php';
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $config['host'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $config['username'];
+    $mail->Password = $config['password'];
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = $config['port'];
+    $mail->CharSet = 'UTF-8';
+    $mail->setFrom($config['from_email'], $config['from_name']);
+    $mail->addAddress($data['Email'], $data['HoTen']);
+    $mail->isHTML(true);
+    $mail->Subject = 'Xác nhận hủy lịch khám thành công - ' . $data['MaTraCuu'];
+
+    $ngayKham = date('d/m/Y', strtotime($data['NgayKham']));
+    $gioKham = substr($data['GioBatDau'], 0, 5) . ' - ' . substr($data['GioKetThuc'], 0, 5);
+    $lookupUrl = $config['base_url'] . '/patient/lookup.php?code=' . urlencode($data['MaTraCuu']);
+    $mail->Body = '
+        <h2>Hủy lịch khám thành công</h2>
+        <p>Xin chào <strong>' . htmlspecialchars($data['HoTen'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong>,</p>
+        <p>Yêu cầu hủy lịch khám của bạn đã được xác minh bằng mã OTP và xử lý thành công.</p>
+        <p><strong>Mã tra cứu:</strong> ' . htmlspecialchars($data['MaTraCuu'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+        <p><strong>Chuyên khoa:</strong> ' . htmlspecialchars($data['TenChuyenKhoa'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+        <p><strong>Bác sĩ:</strong> ' . htmlspecialchars($data['TenBacSi'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+        <p><strong>Ngày khám:</strong> ' . $ngayKham . '</p>
+        <p><strong>Thời gian:</strong> ' . $gioKham . '</p>
+        <p><strong>Trạng thái:</strong> Đã hủy</p>
+        <p>Cảm ơn bạn đã tin tưởng và lựa chọn dịch vụ khám chữa bệnh của chúng tôi.</p>
+        <p><a href="' . htmlspecialchars($lookupUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Tra cứu lịch khám</a></p>
+        <p>Trân trọng,<br>' . htmlspecialchars($config['from_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+    ';
+    $mail->AltBody = "Hủy lịch khám thành công\nMã tra cứu: {$data['MaTraCuu']}\nBác sĩ: {$data['TenBacSi']}\nNgày khám: {$ngayKham}\nThời gian: {$gioKham}\nTrạng thái: Đã hủy. Chỗ khám đã được giải phóng.";
+    $mail->send();
+}
+
+
 function guiEmailKetQuaKham(array $data, string $pdfContent, string $fileName): void
 {
     if (empty($data['Email']) || !filter_var($data['Email'], FILTER_VALIDATE_EMAIL)) {
