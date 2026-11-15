@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/../auth/check.php'; requireRole('Admin'); require_once __DIR__.'/../config/database.php';
+require_once __DIR__.'/../auth/check.php'; requireRole('Admin'); require_once __DIR__.'/../config/database.php'; require_once __DIR__.'/../helpers/portal-layout.php';
 $error='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
   $action=$_POST['action']??''; $id=(int)($_POST['MaCK']??0);
@@ -68,13 +68,12 @@ $rows=$pdo->query('SELECT ck.*,COUNT(bs.MaBS) SoBacSi FROM ChuyenKhoa ck LEFT JO
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Chuyên khoa</title>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body>
+      <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+</head>
+  <body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('Admin', 'Quản lý chuyên khoa', 'specialties'); ?>
     <div class="container py-4">
-    <div class="d-flex justify-content-between mb-3">
-    <h2>Quản lý chuyên khoa</h2>
-    <a class="btn btn-outline-secondary" href="dashboard.php">Dashboard</a>
-  </div>
 <?php if($error):?>
   <div class="alert alert-danger">
     <?=htmlspecialchars($error)?>
@@ -105,7 +104,7 @@ $rows=$pdo->query('SELECT ck.*,COUNT(bs.MaBS) SoBacSi FROM ChuyenKhoa ck LEFT JO
     <small class="text-muted mt-2">Mã viết tắt chỉ gồm chữ cái không dấu, tối đa 10 ký tự.</small>
 </form>
 
-<table class="table table-bordered align-middle">
+<div class="table-responsive"><table class="table table-bordered align-middle">
   <thead>
     <tr>
       <th>Mã</th>
@@ -152,7 +151,8 @@ $rows=$pdo->query('SELECT ck.*,COUNT(bs.MaBS) SoBacSi FROM ChuyenKhoa ck LEFT JO
       </tr>
       <?php endforeach;?>
     </tbody>
-  </table>
+  </table></div>
 </div>
+<?php clinicPortalShellEnd(); ?>
 </body>
 </html>

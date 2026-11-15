@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../helpers/portal-layout.php';
 
 function guiKetQuaKham(PDO $pdo, int $maDatLich, string $maBS, bool $guiLai = false): void
 {
@@ -387,15 +388,13 @@ $canComplete = in_array($a['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && $
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hồ sơ khám</title>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
 </head>
-<body>
+<body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('BacSi', 'Hồ sơ khám bệnh', 'appointments'); ?>
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Hồ sơ khám bệnh</h2>
-        <a class="btn btn-outline-secondary" href="appointments.php">Lịch khám</a>
-    </div>
-
-    <?php if (isset($_GET['sent'])): ?>
+<?php if (isset($_GET['sent'])): ?>
         <div class="alert alert-success">
             <?= isset($_GET['resent']) ? 'Đã gửi lại' : 'Đã gửi' ?> email kết quả khám kèm file PDF cho bệnh nhân thành công.
         </div>
@@ -542,5 +541,6 @@ $canComplete = in_array($a['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && $
         </form>
     <?php endif; ?>
 </div>
+<?php clinicPortalShellEnd(); ?>
 </body>
 </html>

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../helpers/portal-layout.php';
 
 $stmt = $pdo->prepare('SELECT MaBS, HoTen FROM BacSi WHERE MaTK=?');
 $stmt->execute([$_SESSION['user']['MaTK']]);
@@ -374,19 +375,13 @@ $rows = $stmt->fetchAll();
             white-space: normal;
         }
     </style>
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
 </head>
-<body>
+<body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('BacSi', 'Quản lý lịch làm việc', 'schedules'); ?>
     <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h2>Quản lý lịch làm việc</h2>
-                <div>BS. <?= htmlspecialchars($bs['HoTen']) ?></div>
-                <small class="text-muted">Tạo, chỉnh sửa hoặc xóa lịch chưa có bệnh nhân đặt.</small>
-            </div>
-            <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
-        </div>
-
-        <?php if ($successMessage): ?>
+<?php if ($successMessage): ?>
             <div class="alert alert-success"><?= htmlspecialchars($successMessage) ?></div>
         <?php endif; ?>
 
@@ -499,5 +494,6 @@ $rows = $stmt->fetchAll();
             </table>
         </div>
     </div>
+<?php clinicPortalShellEnd(); ?>
 </body>
 </html>

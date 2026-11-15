@@ -1,7 +1,9 @@
 <?php
-require_once __DIR__.'/../auth/check.php'; requireRole('Admin'); require_once __DIR__.'/../config/database.php';
+require_once __DIR__.'/../auth/check.php'; requireRole('Admin'); require_once __DIR__.'/../config/database.php'; require_once __DIR__.'/../helpers/portal-layout.php';
 $error='';
 $avatarMoi=null;
+$selectedSpecialty = filter_var($_GET['specialty'] ?? 0, FILTER_VALIDATE_INT);
+$selectedSpecialty = $selectedSpecialty !== false && $selectedSpecialty > 0 ? $selectedSpecialty : 0;
 function taoMaBacSi(PDO $pdo, int $maCK): string
 {
     // Lấy chữ viết tắt của chuyên khoa
@@ -194,7 +196,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   } elseif($action==='reset_password'&&$id){
     $pwd=$_POST['NewPassword']??'';if(strlen($pwd)<6)throw new Exception('Mật khẩu mới phải có ít nhất 6 ký tự.');$s=$pdo->prepare('SELECT MaTK FROM BacSi WHERE MaBS=?');$s->execute([$id]);$matk=$s->fetchColumn();if($matk)$pdo->prepare('UPDATE TaiKhoan SET MatKhau=? WHERE MaTK=?')->execute([password_hash($pwd,PASSWORD_DEFAULT),$matk]);
   }
-  header('Location: doctors.php');exit;
+  header('Location: doctors.php' . ($selectedSpecialty > 0 ? '?specialty=' . $selectedSpecialty : ''));exit;
  }catch(Throwable $e){
   if($pdo->inTransaction())$pdo->rollBack();
   if($avatarMoi) xoaAvatarDuocQuanLy($avatarMoi);
@@ -205,20 +207,43 @@ $edit=null;if(isset($_GET['edit'])){$s=$pdo->prepare('SELECT bs.*,tk.TenDangNhap
 $s->execute([trim($_GET['edit'])]);
 $edit=$s->fetch();}
 $cks=$pdo->query('SELECT MaCK,TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai=1 ORDER BY TenChuyenKhoa')->fetchAll();
-$rows=$pdo->query('SELECT bs.MaBS,bs.HoTen,bs.Email,bs.SoDienThoai,bs.HocVi,bs.AnhDaiDien,ck.TenChuyenKhoa,bs.TrangThai,tk.TenDangNhap FROM BacSi bs JOIN ChuyenKhoa ck ON bs.MaCK=ck.MaCK JOIN TaiKhoan tk ON bs.MaTK=tk.MaTK ORDER BY bs.MaBS DESC')->fetchAll();
+$specialtyFilters = $pdo->query(
+    'SELECT ck.MaCK, ck.TenChuyenKhoa, COUNT(bs.MaBS) AS SoBacSi
+     FROM ChuyenKhoa ck
+     LEFT JOIN BacSi bs ON bs.MaCK = ck.MaCK
+     GROUP BY ck.MaCK, ck.TenChuyenKhoa
+     ORDER BY ck.TenChuyenKhoa'
+)->fetchAll();
+$totalDoctors = (int)$pdo->query('SELECT COUNT(*) FROM BacSi')->fetchColumn();
+$validSpecialtyIds = array_map('intval', array_column($specialtyFilters, 'MaCK'));
+if ($selectedSpecialty > 0 && !in_array($selectedSpecialty, $validSpecialtyIds, true)) {
+    $selectedSpecialty = 0;
+}
+$doctorSql = 'SELECT bs.MaBS,bs.HoTen,bs.Email,bs.SoDienThoai,bs.HocVi,bs.AnhDaiDien,ck.TenChuyenKhoa,bs.TrangThai,tk.TenDangNhap
+              FROM BacSi bs
+              JOIN ChuyenKhoa ck ON bs.MaCK=ck.MaCK
+              JOIN TaiKhoan tk ON bs.MaTK=tk.MaTK';
+if ($selectedSpecialty > 0) {
+    $doctorSql .= ' WHERE bs.MaCK = ?';
+    $doctorSql .= ' ORDER BY bs.MaBS DESC';
+    $doctorStmt = $pdo->prepare($doctorSql);
+    $doctorStmt->execute([$selectedSpecialty]);
+    $rows = $doctorStmt->fetchAll();
+} else {
+    $rows = $pdo->query($doctorSql . ' ORDER BY bs.MaBS DESC')->fetchAll();
+}
 ?>
 <!doctype html><html lang="vi">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Bác sĩ</title><link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body>
+      <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+</head>
+  <body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('Admin', 'Quản lý bác sĩ', 'doctors'); ?>
     <div class="container py-4">
-      <div class="d-flex justify-content-between mb-3">
-        <h2>Quản lý bác sĩ</h2>
-        <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
-      </div>
 <?php if($error):?>
   <div class="alert alert-danger">
     <?=htmlspecialchars($error)?>
@@ -281,7 +306,28 @@ $rows=$pdo->query('SELECT bs.MaBS,bs.HoTen,bs.Email,bs.SoDienThoai,bs.HocVi,bs.A
   </div>
 </div>
 </form>
-<table class="table table-bordered align-middle">
+<div class="specialty-filter-panel">
+  <div class="specialty-filter-heading">
+    <div>
+      <h5>Danh sách bác sĩ</h5>
+      <p>Lọc danh sách theo chuyên khoa</p>
+    </div>
+    <span class="specialty-filter-total"><?=count($rows)?> / <?=$totalDoctors?> bác sĩ</span>
+  </div>
+  <div class="specialty-filter-list">
+    <a class="specialty-filter-chip <?=$selectedSpecialty===0?'active':''?>" href="doctors.php" <?= $selectedSpecialty===0 ? 'aria-current="page"' : '' ?>>
+      <span>Tất cả</span><span class="specialty-filter-count"><?=$totalDoctors?></span>
+    </a>
+    <?php foreach($specialtyFilters as $specialty): ?>
+      <?php $specialtyId=(int)$specialty['MaCK']; ?>
+      <a class="specialty-filter-chip <?=$selectedSpecialty===$specialtyId?'active':''?>" href="?specialty=<?=$specialtyId?>" <?= $selectedSpecialty===$specialtyId ? 'aria-current="page"' : '' ?>>
+        <span><?=htmlspecialchars($specialty['TenChuyenKhoa'], ENT_QUOTES, 'UTF-8')?></span>
+        <span class="specialty-filter-count"><?=(int)$specialty['SoBacSi']?></span>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</div>
+<div class="table-responsive"><table class="table table-bordered align-middle">
   <thead>
     <tr>
       <th>Ảnh</th>
@@ -342,8 +388,11 @@ $rows=$pdo->query('SELECT bs.MaBS,bs.HoTen,bs.Email,bs.SoDienThoai,bs.HocVi,bs.A
           </form></td>
         </tr>
     <?php endforeach;?>
+    <?php if(!$rows): ?>
+      <tr><td colspan="8" class="text-center text-muted py-4">Không có bác sĩ thuộc chuyên khoa này.</td></tr>
+    <?php endif; ?>
   </tbody>
-</table>
+</table></div>
 </div>
 <script>
 document.getElementById('doctorAvatarInput')?.addEventListener('change', function () {
@@ -353,5 +402,6 @@ document.getElementById('doctorAvatarInput')?.addEventListener('change', functio
   const url=URL.createObjectURL(this.files[0]);preview.src=url;preview.dataset.url=url;preview.style.display='block';
 });
 </script>
+<?php clinicPortalShellEnd(); ?>
 </body>
 </html>

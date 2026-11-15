@@ -4,6 +4,7 @@ require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../helpers/portal-layout.php';
 
 
 $stmt = $pdo->prepare(
@@ -88,35 +89,15 @@ $rows = $stmt->fetchAll();
         href="../assets/vendor/bootstrap/css/bootstrap.min.css"
         rel="stylesheet">
 
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('BacSi', 'Lịch sử khám', 'history'); ?>
 
 <div class="container py-4">
-
-    <div class="d-flex justify-content-between mb-3">
-
-        <div>
-
-            <h2>Lịch sử khám</h2>
-
-            <div>
-                BS. <?= htmlspecialchars($bs['HoTen']) ?>
-            </div>
-
-        </div>
-
-        <a href="dashboard.php"
-           class="btn btn-outline-secondary h-50">
-
-            Dashboard
-
-        </a>
-
-    </div>
-
-
-    <table class="table table-bordered table-striped align-middle">
+<div class="table-responsive"><table class="table table-bordered table-striped align-middle">
 
         <thead>
 
@@ -251,10 +232,11 @@ $rows = $stmt->fetchAll();
 
         </tbody>
 
-    </table>
+    </table></div>
 
 </div>
 
+<?php clinicPortalShellEnd(); ?>
 </body>
 
 </html>

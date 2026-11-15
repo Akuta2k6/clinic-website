@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../helpers/portal-layout.php';
 
 $stmt = $pdo->prepare('SELECT MaBS, HoTen FROM BacSi WHERE MaTK=?');
 $stmt->execute([$_SESSION['user']['MaTK']]);
@@ -45,18 +46,13 @@ $skipped = (int)($_GET['skipped'] ?? 0);
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Quản lý lịch khám</title>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
 </head>
-<body>
+<body class="clinic-dashboard-page">
+<?php clinicPortalShellStart('BacSi', 'Quản lý lịch khám', 'appointments'); ?>
     <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h2>Quản lý lịch khám</h2>
-                <div>BS. <?= htmlspecialchars($bs['HoTen']) ?></div>
-            </div>
-            <a href="dashboard.php" class="btn btn-outline-secondary">Dashboard</a>
-        </div>
-
-        <?php if ($cancelled): ?>
+<?php if ($cancelled): ?>
             <div class="alert alert-success">
                 Đã hủy lịch khám thành công.
                 Email gửi thành công: <?= $sent ?>;
@@ -125,5 +121,6 @@ $skipped = (int)($_GET['skipped'] ?? 0);
             </table>
         </div>
     </div>
+<?php clinicPortalShellEnd(); ?>
 </body>
 </html>
