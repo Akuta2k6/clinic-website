@@ -3,10 +3,15 @@ require_once __DIR__ . '/../auth/check.php';
 requireRole('BacSi');
 require_once __DIR__ . '/../config/database.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: appointments.php');
+    exit;
+}
+
 $maDatLich = filter_input(INPUT_POST, 'MaDatLich', FILTER_VALIDATE_INT);
 $trangThai = $_POST['TrangThai'] ?? '';
 
-if (!$maDatLich || $trangThai !== 'DaHuy') {
+if (!$maDatLich || !in_array($trangThai, ['DaXacNhan', 'DaHuy'], true)) {
     header('Location: appointments.php');
     exit;
 }
@@ -16,8 +21,50 @@ $stmt->execute([$_SESSION['user']['MaTK']]);
 $maBS = $stmt->fetchColumn();
 
 if (!$maBS) {
-    header('Location: appointments.php?cancel_error=1');
+    header('Location: appointments.php?status_error=1');
     exit;
+}
+
+if ($trangThai === 'DaXacNhan') {
+    try {
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare(
+            "SELECT dl.MaDatLich, dl.TrangThai
+             FROM DatLich dl
+             JOIN LichKham lk ON dl.MaLich = lk.MaLich
+             WHERE dl.MaDatLich = ? AND lk.MaBS = ?
+             FOR UPDATE"
+        );
+        $stmt->execute([$maDatLich, $maBS]);
+        $appointment = $stmt->fetch();
+
+        if (!$appointment || $appointment['TrangThai'] !== 'ChoXacNhan') {
+            throw new RuntimeException('Lịch khám không ở trạng thái chờ xác nhận.');
+        }
+
+        $stmt = $pdo->prepare(
+            "UPDATE DatLich
+             SET TrangThai = 'DaXacNhan'
+             WHERE MaDatLich = ? AND TrangThai = 'ChoXacNhan'"
+        );
+        $stmt->execute([$maDatLich]);
+
+        if ($stmt->rowCount() !== 1) {
+            throw new RuntimeException('Không thể xác nhận lịch khám.');
+        }
+
+        $pdo->commit();
+        header('Location: appointments.php?confirmed=1');
+        exit;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('[Clinic] Xác nhận lịch khám thất bại: ' . $e->getMessage());
+        header('Location: appointments.php?status_error=1');
+        exit;
+    }
 }
 
 try {

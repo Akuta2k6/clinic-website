@@ -147,7 +147,7 @@ if (!$maDatLich) {
     exit('Thiếu mã lịch hẹn.');
 }
 
-$stmt = $pdo->prepare(
+$appointmentQuery =
     "SELECT
         dl.*,
         bn.HoTen AS TenBN,
@@ -168,8 +168,9 @@ $stmt = $pdo->prepare(
     JOIN BacSi bs ON lk.MaBS = bs.MaBS
     JOIN ChuyenKhoa ck ON bs.MaCK = ck.MaCK
     LEFT JOIN PhongKham pk ON lk.MaPK = pk.MaPK
-    WHERE dl.MaDatLich = ? AND lk.MaBS = ?"
-);
+    WHERE dl.MaDatLich = ? AND lk.MaBS = ?";
+
+$stmt = $pdo->prepare($appointmentQuery);
 $stmt->execute([$maDatLich, $bs['MaBS']]);
 $a = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -181,14 +182,15 @@ if (!$a) {
 $error = '';
 $ok = '';
 $emailStatus = $a['TrangThaiGuiKetQua'] ?? 'ChuaGui';
-$isLocked = $a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['DangGui', 'DaGui'], true);
+$isLocked = in_array($a['TrangThai'], ['DaHuy', 'VangMat'], true)
+    || ($a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['DangGui', 'DaGui'], true));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
         if ($isLocked && in_array($action, ['save_record', 'save_prescription', 'add_medicine', 'remove_medicine'], true)) {
-            throw new RuntimeException('Hồ sơ đang được gửi hoặc đã gửi cho bệnh nhân nên tạm thời không thể chỉnh sửa.');
+            throw new RuntimeException('Hồ sơ không còn ở trạng thái cho phép chỉnh sửa.');
         }
 
         if ($action === 'save_record') {
@@ -196,6 +198,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ketLuan = trim($_POST['KetLuan'] ?? '');
             $huongDieuTri = trim($_POST['HuongDieuTri'] ?? '');
             $ghiChu = trim($_POST['GhiChu'] ?? '');
+
+            if ($chanDoan === '' && $ketLuan === '') {
+                throw new RuntimeException('Vui lòng nhập ít nhất chẩn đoán hoặc kết luận khám.');
+            }
 
             $pdo->beginTransaction();
             $stmt = $pdo->prepare('SELECT MaHS FROM HoSoKham WHERE MaDatLich = ? FOR UPDATE');
@@ -249,6 +255,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $soLuong = max(1, (int)($_POST['SoLuong'] ?? 1));
             $lieuDung = trim($_POST['LieuDung'] ?? '');
             $cachDung = trim($_POST['CachDung'] ?? '');
+
+            if ($mathuoc <= 0) {
+                throw new RuntimeException('Vui lòng chọn thuốc hợp lệ.');
+            }
 
             $pdo->beginTransaction();
             $stmt = $pdo->prepare('SELECT MaHS FROM HoSoKham WHERE MaDatLich = ? FOR UPDATE');
@@ -332,14 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$stmt = $pdo->prepare(
-    'SELECT dl.*, bn.HoTen AS TenBN, bn.GioiTinh, bn.NgaySinh, bn.SoDienThoai, bn.Email, bn.DiaChi,
-            lk.NgayKham, lk.GioBatDau, lk.GioKetThuc
-     FROM DatLich dl
-     JOIN BenhNhan bn ON dl.MaBN = bn.MaBN
-     JOIN LichKham lk ON dl.MaLich = lk.MaLich
-     WHERE dl.MaDatLich = ? AND lk.MaBS = ?'
-);
+$stmt = $pdo->prepare($appointmentQuery);
 $stmt->execute([$maDatLich, $bs['MaBS']]);
 $a = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -375,11 +378,12 @@ $thuoc = $pdo->query(
 )->fetchAll(PDO::FETCH_ASSOC);
 
 $emailStatus = $a['TrangThaiGuiKetQua'] ?? 'ChuaGui';
-$isLocked = $a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['DangGui', 'DaGui'], true);
+$isLocked = in_array($a['TrangThai'], ['DaHuy', 'VangMat'], true)
+    || ($a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['DangGui', 'DaGui'], true));
 $lastAttempt = !empty($a['ThoiGianThuGuiKetQua']) ? strtotime($a['ThoiGianThuGuiKetQua']) : false;
 $staleSending = $emailStatus === 'DangGui' && $lastAttempt !== false && time() - $lastAttempt >= 600;
-$canRetry = $a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['ChuaGui', 'ThatBai'], true) || ($a['TrangThai'] === 'DaKham' && $staleSending);
-$canComplete = in_array($a['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && $hs && $don;
+$canRetry = ($a['TrangThai'] === 'DaKham' && in_array($emailStatus, ['ChuaGui', 'ThatBai'], true))
+    || ($a['TrangThai'] === 'DaKham' && $staleSending);
 ?>
 <!doctype html>
 <html lang="vi">
@@ -394,7 +398,7 @@ $canComplete = in_array($a['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && $
 <body class="clinic-dashboard-page">
 <?php clinicPortalShellStart('BacSi', 'Hồ sơ khám bệnh', 'appointments'); ?>
 <div class="container py-4">
-<?php if (isset($_GET['sent'])): ?>
+    <?php if (isset($_GET['sent'])): ?>
         <div class="alert alert-success">
             <?= isset($_GET['resent']) ? 'Đã gửi lại' : 'Đã gửi' ?> email kết quả khám kèm file PDF cho bệnh nhân thành công.
         </div>

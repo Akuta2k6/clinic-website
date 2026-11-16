@@ -8,6 +8,12 @@ if (!$maCK) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT MaBS, HoTen, HocVi FROM BacSi WHERE MaCK = ? AND TrangThai = 1 ORDER BY HoTen');
+$stmt = $pdo->prepare(
+    'SELECT bs.MaBS, bs.HoTen, bs.HocVi
+     FROM BacSi bs
+     INNER JOIN ChuyenKhoa ck ON bs.MaCK = ck.MaCK
+     WHERE bs.MaCK = ? AND bs.TrangThai = 1 AND ck.TrangThai = 1
+     ORDER BY bs.HoTen'
+);
 $stmt->execute([$maCK]);
 echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);

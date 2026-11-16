@@ -10,6 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $username = trim($_POST['TenDangNhap'] ?? '');
 $password = $_POST['MatKhau'] ?? '';
 
+if ($username === '' || $password === '') {
+    header('Location: ../login.php?error=' . urlencode('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.'));
+    exit;
+}
+
 $stmt = $pdo->prepare('SELECT * FROM TaiKhoan WHERE TenDangNhap = ? AND TrangThai = 1 LIMIT 1');
 $stmt->execute([$username]);
 $user = $stmt->fetch();
@@ -19,6 +24,8 @@ if (!$user || !password_verify($password, $user['MatKhau'])) {
     exit;
 }
 
+session_regenerate_id(true);
+
 $_SESSION['user'] = [
     'MaTK' => (int)$user['MaTK'],
     'TenDangNhap' => $user['TenDangNhap'],
@@ -27,7 +34,11 @@ $_SESSION['user'] = [
 
 if ($user['VaiTro'] === 'Admin') {
     header('Location: ../admin/dashboard.php');
-} else {
+} elseif ($user['VaiTro'] === 'BacSi') {
     header('Location: ../doctor/dashboard.php');
+} else {
+    session_unset();
+    session_destroy();
+    header('Location: ../login.php?error=' . urlencode('Vai trò tài khoản không hợp lệ.'));
 }
 exit;

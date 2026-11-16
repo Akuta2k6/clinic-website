@@ -33,8 +33,10 @@ $stmt = $pdo->prepare(
 $stmt->execute([$bs['MaBS']]);
 $rows = $stmt->fetchAll();
 
+$confirmed = isset($_GET['confirmed']);
 $cancelled = isset($_GET['cancelled']);
 $cancelError = isset($_GET['cancel_error']);
+$statusError = isset($_GET['status_error']);
 $sent = (int)($_GET['sent'] ?? 0);
 $failed = (int)($_GET['failed'] ?? 0);
 $skipped = (int)($_GET['skipped'] ?? 0);
@@ -52,7 +54,13 @@ $skipped = (int)($_GET['skipped'] ?? 0);
 <body class="clinic-dashboard-page">
 <?php clinicPortalShellStart('BacSi', 'Quản lý lịch khám', 'appointments'); ?>
     <div class="container py-4">
-<?php if ($cancelled): ?>
+        <?php if ($confirmed): ?>
+            <div class="alert alert-success">
+                Đã xác nhận lịch khám thành công.
+            </div>
+        <?php endif; ?>
+
+        <?php if ($cancelled): ?>
             <div class="alert alert-success">
                 Đã hủy lịch khám thành công.
                 Email gửi thành công: <?= $sent ?>;
@@ -61,9 +69,9 @@ $skipped = (int)($_GET['skipped'] ?? 0);
             </div>
         <?php endif; ?>
 
-        <?php if ($cancelError): ?>
+        <?php if ($cancelError || $statusError): ?>
             <div class="alert alert-danger">
-                Không thể hủy lịch khám. Lịch có thể đã được xử lý trước đó hoặc dữ liệu vừa thay đổi. Vui lòng tải lại trang và kiểm tra trạng thái.
+                Không thể cập nhật trạng thái lịch khám. Lịch có thể đã được xử lý trước đó hoặc dữ liệu vừa thay đổi. Vui lòng tải lại trang và kiểm tra trạng thái.
             </div>
         <?php endif; ?>
 
@@ -82,16 +90,16 @@ $skipped = (int)($_GET['skipped'] ?? 0);
                 <tbody>
                     <?php foreach ($rows as $r): ?>
                         <tr>
-                            <td><?= htmlspecialchars($r['HoTen']) ?></td>
+                            <td><?= htmlspecialchars($r['HoTen'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
-                                <?= htmlspecialchars($r['SoDienThoai']) ?><br>
-                                <?= htmlspecialchars($r['Email'] ?? '') ?>
+                                <?= htmlspecialchars($r['SoDienThoai'], ENT_QUOTES, 'UTF-8') ?><br>
+                                <?= htmlspecialchars($r['Email'] ?? '', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td>
-                                <?= htmlspecialchars($r['NgayKham']) ?><br>
+                                <?= htmlspecialchars(date('d/m/Y', strtotime($r['NgayKham'])), ENT_QUOTES, 'UTF-8') ?><br>
                                 <?= substr($r['GioBatDau'], 0, 5) ?> - <?= substr($r['GioKetThuc'], 0, 5) ?>
                             </td>
-                            <td><?= nl2br(htmlspecialchars($r['LyDoKham'] ?? '')) ?></td>
+                            <td><?= nl2br(htmlspecialchars($r['LyDoKham'] ?? '', ENT_QUOTES, 'UTF-8')) ?></td>
                             <td>
                                 <?php if ($r['TrangThai'] === 'ChoXacNhan'): ?>
                                     <span class="badge bg-warning text-dark">Chờ xác nhận</span>
@@ -101,6 +109,13 @@ $skipped = (int)($_GET['skipped'] ?? 0);
                             </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
+                                    <?php if ($r['TrangThai'] === 'ChoXacNhan'): ?>
+                                        <form action="update-status.php" method="post">
+                                            <input type="hidden" name="MaDatLich" value="<?= (int)$r['MaDatLich'] ?>">
+                                            <input type="hidden" name="TrangThai" value="DaXacNhan">
+                                            <button type="submit" class="btn btn-sm btn-primary">Xác nhận</button>
+                                        </form>
+                                    <?php endif; ?>
                                     <a class="btn btn-sm btn-success" href="medical-record.php?appointment=<?= (int)$r['MaDatLich'] ?>">Khám</a>
                                     <form action="update-status.php" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch khám này không? Hệ thống sẽ cập nhật trạng thái và gửi email thông báo cho bệnh nhân.');">
                                         <input type="hidden" name="MaDatLich" value="<?= (int)$r['MaDatLich'] ?>">

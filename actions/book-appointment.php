@@ -19,9 +19,10 @@ function taoMaTraCuu(PDO $pdo): string
 
 $hoTen = trim($_POST['HoTen'] ?? '');
 $email = trim($_POST['Email'] ?? '');
-$sdt = trim($_POST['SoDienThoai'] ?? '');
+$sdtRaw = trim($_POST['SoDienThoai'] ?? '');
+$sdt = preg_replace('/[\s.\-()]+/', '', $sdtRaw);
 $gioiTinh = trim($_POST['GioiTinh'] ?? '');
-$ngaySinh = $_POST['NgaySinh'] ?? null;
+$ngaySinh = trim($_POST['NgaySinh'] ?? '');
 $maLich = filter_input(INPUT_POST, 'MaLich', FILTER_VALIDATE_INT);
 $lyDo = trim($_POST['LyDoKham'] ?? '');
 
@@ -30,18 +31,41 @@ if ($hoTen === '' || $sdt === '' || $email === '' || !$maLich) {
     exit;
 }
 
+if (!preg_match('/^(0|\+84)[0-9]{8,10}$/', $sdt)) {
+    header('Location: ../appointment.php?error=' . urlencode('Số điện thoại không hợp lệ.'));
+    exit;
+}
+
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     header('Location: ../appointment.php?error=' . urlencode('Email không hợp lệ.'));
     exit;
+}
+
+if ($gioiTinh !== '' && !in_array($gioiTinh, ['Nam', 'Nữ', 'Khác'], true)) {
+    header('Location: ../appointment.php?error=' . urlencode('Giới tính không hợp lệ.'));
+    exit;
+}
+
+if ($ngaySinh !== '') {
+    $dob = DateTime::createFromFormat('!Y-m-d', $ngaySinh);
+    if (!$dob || $dob->format('Y-m-d') !== $ngaySinh || $ngaySinh > date('Y-m-d')) {
+        header('Location: ../appointment.php?error=' . urlencode('Ngày sinh không hợp lệ.'));
+        exit;
+    }
 }
 
 try {
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("
-        SELECT *, (NgayKham < CURDATE()) AS NgayDaQua
-        FROM LichKham
-        WHERE MaLich=?
+        SELECT lk.*,
+               (lk.NgayKham < CURDATE() OR (lk.NgayKham = CURDATE() AND lk.GioBatDau <= CURTIME())) AS DaQuaThoiGian,
+               bs.TrangThai AS TrangThaiBacSi,
+               ck.TrangThai AS TrangThaiChuyenKhoa
+        FROM LichKham lk
+        JOIN BacSi bs ON lk.MaBS = bs.MaBS
+        JOIN ChuyenKhoa ck ON bs.MaCK = ck.MaCK
+        WHERE lk.MaLich = ?
         FOR UPDATE
     ");
     $stmt->execute([$maLich]);
@@ -51,34 +75,63 @@ try {
         throw new RuntimeException('Không tìm thấy lịch khám.');
     }
 
-    if ((int)$lich['NgayDaQua'] === 1) {
-        throw new RuntimeException('Ngày khám đã qua. Vui lòng chọn ngày khác.');
+    if ((int)$lich['TrangThaiBacSi'] !== 1 || (int)$lich['TrangThaiChuyenKhoa'] !== 1) {
+        throw new RuntimeException('Bác sĩ hoặc chuyên khoa này hiện tạm ngưng nhận lịch.');
+    }
+
+    if ((int)$lich['DaQuaThoiGian'] === 1) {
+        throw new RuntimeException('Khung giờ khám đã qua. Vui lòng chọn khung giờ hoặc ngày khác.');
     }
 
     if ($lich['TrangThai'] !== 'Mo' || (int)$lich['SoLuongDaDat'] >= (int)$lich['SoLuongToiDa']) {
         throw new RuntimeException('Khung giờ này đã hết chỗ hoặc không còn mở.');
     }
 
-    $stmt = $pdo->prepare('SELECT MaBN FROM BenhNhan WHERE SoDienThoai=? ORDER BY MaBN DESC LIMIT 1');
+    $stmt = $pdo->prepare('SELECT MaBN FROM BenhNhan WHERE SoDienThoai=? ORDER BY MaBN DESC LIMIT 1 FOR UPDATE');
     $stmt->execute([$sdt]);
     $benhNhan = $stmt->fetch();
 
     if ($benhNhan) {
         $maBN = (int)$benhNhan['MaBN'];
         $stmt = $pdo->prepare('UPDATE BenhNhan SET HoTen=?, Email=?, GioiTinh=?, NgaySinh=? WHERE MaBN=?');
-        $stmt->execute([$hoTen, $email, $gioiTinh ?: null, $ngaySinh ?: null, $maBN]);
+        $stmt->execute([$hoTen, $email, $gioiTinh !== '' ? $gioiTinh : null, $ngaySinh !== '' ? $ngaySinh : null, $maBN]);
     } else {
         $stmt = $pdo->prepare('INSERT INTO BenhNhan (HoTen, GioiTinh, NgaySinh, SoDienThoai, Email) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$hoTen, $gioiTinh ?: null, $ngaySinh ?: null, $sdt, $email]);
+        $stmt->execute([$hoTen, $gioiTinh !== '' ? $gioiTinh : null, $ngaySinh !== '' ? $ngaySinh : null, $sdt, $email]);
         $maBN = (int)$pdo->lastInsertId();
     }
 
+    $stmt = $pdo->prepare('SELECT MaDatLich, MaTraCuu, TrangThai FROM DatLich WHERE MaBN = ? AND MaLich = ? LIMIT 1 FOR UPDATE');
+    $stmt->execute([$maBN, $maLich]);
+    $existingBooking = $stmt->fetch();
+
     $maTraCuu = taoMaTraCuu($pdo);
 
-    $stmt = $pdo->prepare('INSERT INTO DatLich (MaTraCuu, MaBN, MaLich, LyDoKham) VALUES (?, ?, ?, ?)');
-    $stmt->execute([$maTraCuu, $maBN, $maLich, $lyDo ?: null]);
+    if ($existingBooking) {
+        if ($existingBooking['TrangThai'] !== 'DaHuy') {
+            throw new RuntimeException('Bạn đã đặt khung giờ khám này rồi (Mã tra cứu: ' . $existingBooking['MaTraCuu'] . ').');
+        }
 
-    $maDatLich = (int)$pdo->lastInsertId();
+        $maDatLich = (int)$existingBooking['MaDatLich'];
+        $stmt = $pdo->prepare(
+            "UPDATE DatLich
+             SET MaTraCuu = ?,
+                 NgayDat = NOW(),
+                 LyDoKham = ?,
+                 TrangThai = 'ChoXacNhan',
+                 GhiChu = NULL,
+                 TrangThaiGuiKetQua = 'ChuaGui',
+                 ThoiGianThuGuiKetQua = NULL,
+                 ThoiGianGuiKetQua = NULL,
+                 LoiGuiKetQua = NULL
+             WHERE MaDatLich = ?"
+        );
+        $stmt->execute([$maTraCuu, $lyDo !== '' ? $lyDo : null, $maDatLich]);
+    } else {
+        $stmt = $pdo->prepare('INSERT INTO DatLich (MaTraCuu, MaBN, MaLich, LyDoKham) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$maTraCuu, $maBN, $maLich, $lyDo !== '' ? $lyDo : null]);
+        $maDatLich = (int)$pdo->lastInsertId();
+    }
 
     $stmt = $pdo->prepare("UPDATE LichKham
         SET SoLuongDaDat = SoLuongDaDat + 1,

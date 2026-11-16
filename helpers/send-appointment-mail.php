@@ -7,6 +7,15 @@ require_once __DIR__ . '/../libs/PHPMailer/src/Exception.php';
 require_once __DIR__ . '/../libs/PHPMailer/src/PHPMailer.php';
 require_once __DIR__ . '/../libs/PHPMailer/src/SMTP.php';
 
+function clinicMailLoadConfig(): array
+{
+    $path = __DIR__ . '/../config/mail.php';
+    if (!is_file($path)) {
+        throw new RuntimeException('Chưa cấu hình file config/mail.php.');
+    }
+    return require $path;
+}
+
 function clinicMailEscape($value): string
 {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -120,7 +129,7 @@ function clinicMailLayout(
 
 function guiEmailXacNhanLich(array $data): void
 {
-    $config = require __DIR__ . '/../config/mail.php';
+    $config = clinicMailLoadConfig();
     $mail = clinicMailCreateMailer($config, $data);
     $mail->Subject = 'Đặt lịch khám thành công - ' . $data['MaTraCuu'];
 
@@ -169,7 +178,7 @@ function guiEmailXacNhanLich(array $data): void
 
 function guiEmailHuyLichKham(array $data): void
 {
-    $config = require __DIR__ . '/../config/mail.php';
+    $config = clinicMailLoadConfig();
     $mail = clinicMailCreateMailer($config, $data);
     $mail->Subject = 'Thông báo hủy lịch khám - ' . $data['MaTraCuu'];
 
@@ -227,7 +236,7 @@ function guiEmailHuyLichKham(array $data): void
 
 function guiEmailOTPHuyLich(array $data, string $otp): void
 {
-    $config = require __DIR__ . '/../config/mail.php';
+    $config = clinicMailLoadConfig();
     $mail = clinicMailCreateMailer($config, $data);
     $mail->Subject = 'Mã xác minh hủy lịch khám - ' . $data['MaTraCuu'];
 
@@ -272,7 +281,7 @@ function guiEmailOTPHuyLich(array $data, string $otp): void
 
 function guiEmailBenhNhanHuyLichThanhCong(array $data): void
 {
-    $config = require __DIR__ . '/../config/mail.php';
+    $config = clinicMailLoadConfig();
     $mail = clinicMailCreateMailer($config, $data);
     $mail->Subject = 'Xác nhận hủy lịch khám thành công - ' . $data['MaTraCuu'];
 
@@ -329,7 +338,7 @@ function guiEmailKetQuaKham(array $data, string $pdfContent, string $fileName): 
         throw new RuntimeException('Không tạo được file PDF kết quả khám.');
     }
 
-    $config = require __DIR__ . '/../config/mail.php';
+    $config = clinicMailLoadConfig();
     $mail = clinicMailCreateMailer($config, $data);
     $mail->Subject = 'Kết quả khám bệnh và đơn thuốc - ' . $data['MaTraCuu'];
 

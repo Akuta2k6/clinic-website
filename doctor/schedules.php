@@ -89,35 +89,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Giờ kết thúc phải sau giờ bắt đầu.');
             }
 
-            if ($ngay < date('Y-m-d')) {
-                throw new Exception('Không thể tạo lịch trong quá khứ.');
+            if ($ngay < date('Y-m-d') || ($ngay === date('Y-m-d') && $bd <= date('H:i'))) {
+                throw new Exception('Không thể tạo lịch cho thời gian đã qua.');
+            }
+
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM PhongKham WHERE MaPK = ? AND TrangThai = 1');
+            $stmt->execute([$mapk]);
+
+            if ((int)$stmt->fetchColumn() === 0) {
+                throw new Exception('Phòng khám không tồn tại hoặc đang bị khóa.');
             }
 
             $stmt = $pdo->prepare(
-                "SELECT COUNT(*)
+                "SELECT MaLich
                  FROM LichKham
                  WHERE MaBS = ?
                    AND NgayKham = ?
                    AND TrangThai <> 'Huy'
-                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)"
+                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)
+                 LIMIT 1
+                 FOR UPDATE"
             );
             $stmt->execute([$bs['MaBS'], $ngay, $bd, $kt]);
 
-            if ((int)$stmt->fetchColumn() > 0) {
+            if ($stmt->fetch()) {
                 throw new Exception('Khung giờ này bị trùng với lịch khác của bạn.');
             }
 
             $stmt = $pdo->prepare(
-                "SELECT COUNT(*)
+                "SELECT MaLich
                  FROM LichKham
                  WHERE MaPK = ?
                    AND NgayKham = ?
                    AND TrangThai <> 'Huy'
-                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)"
+                   AND NOT (GioKetThuc <= ? OR GioBatDau >= ?)
+                 LIMIT 1
+                 FOR UPDATE"
             );
             $stmt->execute([$mapk, $ngay, $bd, $kt]);
 
-            if ((int)$stmt->fetchColumn() > 0) {
+            if ($stmt->fetch()) {
                 throw new Exception('Phòng khám đã có lịch trong khung giờ này. Vui lòng chọn phòng hoặc thời gian khác.');
             }
 
@@ -135,6 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $max,
                 $ghichu ?: null
             ]);
+
+            $pdo->commit();
 
             header('Location: schedules.php?created=1');
             exit;
@@ -157,8 +172,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Giờ kết thúc phải sau giờ bắt đầu.');
             }
 
-            if ($ngay < date('Y-m-d')) {
-                throw new Exception('Không thể cập nhật lịch trong quá khứ.');
+            if ($ngay < date('Y-m-d') || ($ngay === date('Y-m-d') && $bd <= date('H:i'))) {
+                throw new Exception('Không thể cập nhật lịch cho thời gian đã qua.');
             }
 
             $pdo->beginTransaction();
@@ -381,12 +396,12 @@ $rows = $stmt->fetchAll();
 <body class="clinic-dashboard-page">
 <?php clinicPortalShellStart('BacSi', 'Quản lý lịch làm việc', 'schedules'); ?>
     <div class="container py-4">
-<?php if ($successMessage): ?>
-            <div class="alert alert-success"><?= htmlspecialchars($successMessage) ?></div>
+        <?php if ($successMessage): ?>
+            <div class="alert alert-success"><?= htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
         <?php if ($error): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+            <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
         <form method="post" class="card card-body mb-4">
@@ -398,22 +413,22 @@ $rows = $stmt->fetchAll();
             <div class="row g-2">
                 <div class="col-md-2">
                     <label class="form-label">Ngày khám</label>
-                    <input type="date" min="<?= date('Y-m-d') ?>" name="NgayKham" class="form-control" value="<?= htmlspecialchars((string)$formData['NgayKham']) ?>" required>
+                    <input type="date" min="<?= date('Y-m-d') ?>" name="NgayKham" class="form-control" value="<?= htmlspecialchars((string)$formData['NgayKham'], ENT_QUOTES, 'UTF-8') ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Giờ bắt đầu</label>
-                    <input type="time" name="GioBatDau" class="form-control" value="<?= htmlspecialchars((string)$formData['GioBatDau']) ?>" required>
+                    <input type="time" name="GioBatDau" class="form-control" value="<?= htmlspecialchars((string)$formData['GioBatDau'], ENT_QUOTES, 'UTF-8') ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Giờ kết thúc</label>
-                    <input type="time" name="GioKetThuc" class="form-control" value="<?= htmlspecialchars((string)$formData['GioKetThuc']) ?>" required>
+                    <input type="time" name="GioKetThuc" class="form-control" value="<?= htmlspecialchars((string)$formData['GioKetThuc'], ENT_QUOTES, 'UTF-8') ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Phòng khám</label>
                     <select name="MaPK" class="form-select" required>
                         <option value="">Chọn phòng</option>
                         <?php foreach ($rooms as $room): ?>
-                            <option value="<?= (int)$room['MaPK'] ?>" <?= (string)$formData['MaPK'] === (string)$room['MaPK'] ? 'selected' : '' ?>><?= htmlspecialchars($room['TenPhong']) ?></option>
+                            <option value="<?= (int)$room['MaPK'] ?>" <?= (string)$formData['MaPK'] === (string)$room['MaPK'] ? 'selected' : '' ?>><?= htmlspecialchars($room['TenPhong'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -426,7 +441,7 @@ $rows = $stmt->fetchAll();
                 </div>
                 <div class="col-12">
                     <label class="form-label">Ghi chú</label>
-                    <input name="GhiChu" class="form-control" value="<?= htmlspecialchars((string)$formData['GhiChu']) ?>" placeholder="Ghi chú (không bắt buộc)">
+                    <input name="GhiChu" class="form-control" value="<?= htmlspecialchars((string)$formData['GhiChu'], ENT_QUOTES, 'UTF-8') ?>" placeholder="Ghi chú (không bắt buộc)">
                 </div>
                 <?php if ($editSchedule): ?>
                     <div class="col-12 d-flex justify-content-end">
@@ -452,9 +467,9 @@ $rows = $stmt->fetchAll();
                 <tbody>
                     <?php foreach ($rows as $row): ?>
                         <tr>
-                            <td><?= htmlspecialchars($row['NgayKham']) ?></td>
+                            <td><?= htmlspecialchars($row['NgayKham'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= substr($row['GioBatDau'], 0, 5) ?> - <?= substr($row['GioKetThuc'], 0, 5) ?></td>
-                            <td><?= htmlspecialchars(($row['TenPhong'] ?? '') . ' ' . ($row['ViTri'] ?? '')) ?></td>
+                            <td><?= htmlspecialchars(($row['TenPhong'] ?? '') . ' ' . ($row['ViTri'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= (int)$row['SoLuongDaDat'] ?> / <?= (int)$row['SoLuongToiDa'] ?></td>
                             <td>
                                 <?php if ($row['TrangThai'] === 'Huy'): ?>
@@ -465,7 +480,7 @@ $rows = $stmt->fetchAll();
                                     <span class="badge bg-success">Đang mở</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="schedule-notes"><?= htmlspecialchars($row['GhiChu'] ?? '') ?></td>
+                            <td class="schedule-notes"><?= htmlspecialchars($row['GhiChu'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td class="schedule-actions">
                                 <?php if ((int)$row['TongLuotDat'] === 0): ?>
                                     <div class="d-flex flex-nowrap gap-1">
