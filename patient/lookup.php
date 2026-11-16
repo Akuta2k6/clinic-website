@@ -17,8 +17,9 @@ $success = '';
 $showOtpForm = false;
 $cancelled = false;
 $cancelMailFailed = false;
-$maTraCuu = trim($_POST['MaTraCuu'] ?? $_GET['code'] ?? '');
-$sdt = trim($_POST['SoDienThoai'] ?? '');
+$maTraCuu = strtoupper(trim((string)($_POST['MaTraCuu'] ?? $_GET['code'] ?? '')));
+$sdtRaw = trim((string)($_POST['SoDienThoai'] ?? ''));
+$sdt = preg_replace('/[\s.\-()]+/', '', $sdtRaw);
 $action = $_POST['action'] ?? 'lookup';
 
 class PatientCancellationException extends RuntimeException
@@ -150,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             guiEmailOTPHuyLich($appointment, $otp);
                             $result = $appointment;
                             $showOtpForm = true;
-                            $notice = 'Mã xác đã được gửi đến ' . cheEmail($appointment['Email']) . '. Mã có hiệu lực trong 10 phút.';
+                            $notice = 'Mã xác minh đã được gửi đến ' . cheEmail($appointment['Email']) . '. Mã có hiệu lực trong 10 phút.';
                         } catch (Throwable $mailError) {
                             $deleteOtp = $pdo->prepare('DELETE FROM XacMinhHuyLich WHERE MaDatLich = ? AND MaOTPHash = ?');
                             $deleteOtp->execute([$appointment['MaDatLich'], $otpHash]);
@@ -163,8 +164,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
-                    error_log('[Clinic] Tạo OTP hủy lịch thất bại: ' . $e->getMessage());
-                    $error = 'Không thể tạo mã xác minh. Vui lòng thử lại sau.';
+                    if ($e instanceof PatientCancellationException) {
+                        $error = $e->getMessage();
+                    } else {
+                        error_log('[Clinic] Tạo OTP hủy lịch thất bại: ' . $e->getMessage());
+                        $error = 'Không thể tạo mã xác minh. Vui lòng thử lại sau.';
+                    }
+                    $result = layLichTheoTraCuu($pdo, $maTraCuu, $sdt);
                 }
             }
         }
@@ -296,15 +302,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+        <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
     <?php if ($notice): ?>
-        <div class="alert alert-info"><?= htmlspecialchars($notice) ?></div>
+        <div class="alert alert-info"><?= htmlspecialchars($notice, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
     <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+        <div class="alert alert-success"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
     <?php if ($cancelMailFailed): ?>
@@ -315,15 +321,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="post" class="card card-body shadow-sm mb-4">
         <input type="hidden" name="action" value="lookup">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label">Mã tra cứu</label>
-                <input name="MaTraCuu" class="form-control" value="<?= htmlspecialchars($maTraCuu) ?>" required>
+                <input name="MaTraCuu" class="form-control" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Số điện thoại</label>
-                <input name="SoDienThoai" class="form-control" value="<?= htmlspecialchars($sdt) ?>" required>
+                <input name="SoDienThoai" class="form-control" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>" <?= ($maTraCuu !== '' && $sdtRaw === '') ? 'autofocus' : '' ?> required>
             </div>
             <div class="col-12">
                 <button class="btn btn-primary">Tra cứu</button>
@@ -335,18 +341,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <h4 class="mb-3">Thông tin lịch khám</h4>
-                <p><strong>Mã tra cứu:</strong> <?= htmlspecialchars($result['MaTraCuu']) ?></p>
-                <p><strong>Bệnh nhân:</strong> <?= htmlspecialchars($result['HoTen']) ?></p>
-                <p><strong>Số điện thoại:</strong> <?= htmlspecialchars($result['SoDienThoai']) ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($result['Email'] ?? '') ?></p>
+                <p><strong>Mã tra cứu:</strong> <?= htmlspecialchars($result['MaTraCuu'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p><strong>Bệnh nhân:</strong> <?= htmlspecialchars($result['HoTen'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p><strong>Số điện thoại:</strong> <?= htmlspecialchars($result['SoDienThoai'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p><strong>Email:</strong> <?= htmlspecialchars($result['Email'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
                 <hr>
-                <p><strong>Chuyên khoa:</strong> <?= htmlspecialchars($result['TenChuyenKhoa']) ?></p>
-                <p><strong>Bác sĩ:</strong> <?= htmlspecialchars($result['TenBacSi']) ?></p>
+                <p><strong>Chuyên khoa:</strong> <?= htmlspecialchars($result['TenChuyenKhoa'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p><strong>Bác sĩ:</strong> <?= htmlspecialchars($result['TenBacSi'], ENT_QUOTES, 'UTF-8') ?></p>
                 <p><strong>Ngày khám:</strong> <?= date('d/m/Y', strtotime($result['NgayKham'])) ?></p>
                 <p><strong>Thời gian:</strong> <?= substr($result['GioBatDau'], 0, 5) ?> - <?= substr($result['GioKetThuc'], 0, 5) ?></p>
-                <p><strong>Phòng:</strong> <?= htmlspecialchars($result['TenPhong'] ?? 'Chưa xác định') ?><?= $result['ViTri'] ? ' - ' . htmlspecialchars($result['ViTri']) : '' ?></p>
-                <p><strong>Lý do khám:</strong> <?= htmlspecialchars($result['LyDoKham'] ?? '') ?></p>
-                <p class="mb-0"><strong>Trạng thái:</strong> <?= htmlspecialchars(hienTrangThai($result['TrangThai'])) ?></p>
+                <p><strong>Phòng:</strong> <?= htmlspecialchars($result['TenPhong'] ?? 'Chưa xác định', ENT_QUOTES, 'UTF-8') ?><?= $result['ViTri'] ? ' - ' . htmlspecialchars($result['ViTri'], ENT_QUOTES, 'UTF-8') : '' ?></p>
+                <p><strong>Lý do khám:</strong> <?= htmlspecialchars($result['LyDoKham'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="mb-0"><strong>Trạng thái:</strong> <?= htmlspecialchars(hienTrangThai($result['TrangThai']), ENT_QUOTES, 'UTF-8') ?></p>
 
                 <?php if (!$cancelled && in_array($result['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && (int)$result['ConHuyDuoc'] === 1): ?>
                     <hr>
@@ -355,9 +361,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p class="text-muted">Nhập mã OTP đã được gửi đến email của bạn. Mã có hiệu lực trong 10 phút.</p>
                         <form method="post" class="row g-2">
                             <input type="hidden" name="action" value="confirm_cancel">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu) ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt) ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
                             <div class="col-md-6">
                                 <input type="text" name="MaOTP" class="form-control" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="Nhập mã OTP" required>
                             </div>
@@ -367,17 +373,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </form>
                         <form method="post" class="mt-2">
                             <input type="hidden" name="action" value="request_cancel_otp">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu) ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt) ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
                             <button type="submit" class="btn btn-link btn-sm p-0">Gửi lại mã xác minh</button>
                         </form>
                     <?php else: ?>
                         <form method="post">
                             <input type="hidden" name="action" value="request_cancel_otp">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu) ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt) ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
                             <button type="submit" class="btn btn-outline-danger">Hủy lịch khám</button>
                         </form>
                     <?php endif; ?>
