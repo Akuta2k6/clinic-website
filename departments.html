@@ -74,11 +74,11 @@
             <li><a href="about.html">Giới thiệu</a></li>
             <li class="dropdown"><a href="departments.html" class="active"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="">Khoa Nội</a></li>  
-              <li><a href="">Khoa Ngoại</a></li>
-              <li><a href="">Khoa Răng Hàm Mặt</a></li>
-              <li><a href="">Khoa Mắt</a></li>
-              <li><a href="">Khoa Tim Mạch</a></li>
+              <li><a href="#" onclick="event.preventDefault(); document.getElementById('neurology-tab').click();">Khoa Nội</a></li>  
+              <li><a href="#" onclick="event.preventDefault(); document.getElementById('surgery-tab').click();">Khoa Ngoại</a></li>
+              <li><a href="#" onclick="event.preventDefault(); document.getElementById('dental-tab').click();">Khoa Răng Hàm Mặt</a></li>
+              <li><a href="#" onclick="event.preventDefault(); document.getElementById('ophthalmology-tab').click();">Khoa Mắt</a></li>
+              <li><a href="#" onclick="event.preventDefault(); document.getElementById('cardiology-tab').click();">Khoa Tim Mạch</a></li>
             </ul>
             </li>
             <li class="dropdown"><a href="services.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
@@ -159,7 +159,7 @@
                   <a class="nav-link department-tab active" id="neurology-tab" data-bs-toggle="pill"
                     href="#departments-tabs-neurology" role="tab" aria-controls="departments-tabs-neurology"
                     aria-selected="true" data-aos="fade-up" data-aos-delay="100">Neurology</a>
-                  <a class="nav-link department-tab" id="surgery-tab" data-bs-toggle="pill"
+                  <a class="nav-link department-tab" id="surgery-tab" data-bs-toggle="pill" 
                     href="#departments-tabs-surgery" role="tab" aria-controls="departments-tabs-surgery"
                     aria-selected="false" data-aos="fade-up" data-aos-delay="150">Surgery</a>
                   <a class="nav-link department-tab" id="dental-tab" data-bs-toggle="pill"

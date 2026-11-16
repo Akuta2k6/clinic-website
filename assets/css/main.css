@@ -6219,3 +6219,24 @@ section,
   padding-bottom: 60px;
   /* Add your styles here */
 }
+
+.rating-stars {
+    color: #ffc107;
+    display: inline-flex;
+    gap: 2px;
+}
+
+.partial-star {
+    background: linear-gradient(
+        to right,
+        #ffc107 40%,
+        #ddd 40%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#departments-tabs {
+    scroll-margin-top: 100px;
+}

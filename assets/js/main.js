@@ -144,4 +144,40 @@
     });
   });
 
+  document.addEventListener('DOMContentLoaded', function () {
+
+      // Lấy ID khoa từ URL
+      const hash = window.location.hash;
+
+      if (!hash) return;
+
+      // Danh sách các tab
+      const tabs = {
+          '#departments-tabs-neurology': 'neurology-tab',
+          '#departments-tabs-surgery': 'surgery-tab',
+          '#departments-tabs-dental': 'dental-tab',
+          '#departments-tabs-ophthalmology': 'ophthalmology-tab',
+          '#departments-tabs-cardiology': 'cardiology-tab'
+      };
+
+      const tabId = tabs[hash];
+
+      if (tabId) {
+          const tab = document.getElementById(tabId);
+
+          if (tab) {
+              // Chuyển sang tab tương ứng
+              bootstrap.Tab.getOrCreateInstance(tab).show();
+
+              // Cuộn đến khu vực các khoa
+              setTimeout(function () {
+                  document.getElementById('departments-tabs').scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                  });
+              }, 300);
+          }
+      }
+
+  });
 })();
