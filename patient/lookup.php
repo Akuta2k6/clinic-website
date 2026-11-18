@@ -17,9 +17,8 @@ $success = '';
 $showOtpForm = false;
 $cancelled = false;
 $cancelMailFailed = false;
-$maTraCuu = strtoupper(trim((string)($_POST['MaTraCuu'] ?? $_GET['code'] ?? '')));
-$sdtRaw = trim((string)($_POST['SoDienThoai'] ?? ''));
-$sdt = preg_replace('/[\s.\-()]+/', '', $sdtRaw);
+$maTraCuu = trim($_POST['MaTraCuu'] ?? $_GET['code'] ?? '');
+$sdt = trim($_POST['SoDienThoai'] ?? '');
 $action = $_POST['action'] ?? 'lookup';
 
 class PatientCancellationException extends RuntimeException
@@ -151,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             guiEmailOTPHuyLich($appointment, $otp);
                             $result = $appointment;
                             $showOtpForm = true;
-                            $notice = 'Mã xác minh đã được gửi đến ' . cheEmail($appointment['Email']) . '. Mã có hiệu lực trong 10 phút.';
+                            $notice = 'Mã xác minh gồm 6 chữ số đã được gửi đến ' . cheEmail($appointment['Email']) . '. Mã có hiệu lực trong 10 phút.';
                         } catch (Throwable $mailError) {
                             $deleteOtp = $pdo->prepare('DELETE FROM XacMinhHuyLich WHERE MaDatLich = ? AND MaOTPHash = ?');
                             $deleteOtp->execute([$appointment['MaDatLich'], $otpHash]);
@@ -164,13 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
-                    if ($e instanceof PatientCancellationException) {
-                        $error = $e->getMessage();
-                    } else {
-                        error_log('[Clinic] Tạo OTP hủy lịch thất bại: ' . $e->getMessage());
-                        $error = 'Không thể tạo mã xác minh. Vui lòng thử lại sau.';
-                    }
-                    $result = layLichTheoTraCuu($pdo, $maTraCuu, $sdt);
+                    error_log('[Clinic] Tạo OTP hủy lịch thất bại: ' . $e->getMessage());
+                    $error = 'Không thể tạo mã xác minh. Vui lòng thử lại sau.';
                 }
             }
         }
@@ -180,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($maTraCuu === '' || $sdt === '') {
             $error = 'Thiếu thông tin tra cứu lịch khám. Vui lòng tra cứu lại.';
         } elseif (!preg_match('/^[0-9]{6}$/', $otp)) {
-            $error = 'Vui lòng nhập chính xác mã xác minh.';
+            $error = 'Vui lòng nhập chính xác mã xác minh gồm 6 chữ số.';
             $result = layLichTheoTraCuu($pdo, $maTraCuu, $sdt);
             $showOtpForm = $result && in_array($result['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && (int)$result['ConHuyDuoc'] === 1;
         } else {
@@ -257,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $pdo->commit();
                     $cancelled = true;
-                    $success = 'Bạn đã hủy lịch khám thành công.';
+                    $success = 'Bạn đã hủy lịch khám thành công. Chỗ khám đã được giải phóng.';
 
                     try {
                         require_once __DIR__ . '/../helpers/send-appointment-mail.php';
@@ -284,113 +278,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tra cứu lịch khám</title>
+    <meta name="theme-color" content="#12345a">
+    <title>Tra cứu lịch khám | ClinicCare</title>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../assets/css/public-pages.css" rel="stylesheet">
 </head>
-
-<body>
-<div class="container py-5" style="max-width:800px">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Tra cứu lịch khám</h2>
-        <a href="../index.html" class="btn btn-outline-secondary">Trang chủ</a>
+<body class="clinic-public-body">
+<header class="clinic-header">
+    <div class="clinic-header-inner">
+        <a class="clinic-brand" href="../index.html">
+            <span class="clinic-brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>
+            <span class="clinic-brand-copy"><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span>
+        </a>
+        <nav class="clinic-nav" aria-label="Điều hướng chính">
+            <a href="../index.html"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
+            <a href="../appointment.php"><i class="bi bi-calendar2-plus"></i><span>Đặt lịch khám</span></a>
+            <a class="active" href="lookup.php"><i class="bi bi-search"></i><span>Tra cứu lịch</span></a>
+            <a href="../login.php"><i class="bi bi-person-lock"></i><span>Đăng nhập</span></a>
+        </nav>
     </div>
+</header>
+
+<main class="clinic-main clinic-lookup-main">
+    <section class="clinic-page-heading clinic-lookup-heading">
+        <div>
+            <div class="clinic-eyebrow"><i class="bi bi-calendar-check"></i> THÔNG TIN LỊCH HẸN</div>
+            <h1>Tra cứu lịch <span>khám của bạn</span></h1>
+            <p>Nhập mã tra cứu và số điện thoại đã đăng ký để xem thông tin, thời gian và trạng thái lịch khám.</p>
+        </div>
+        <a class="clinic-heading-link" href="../appointment.php"><i class="bi bi-plus-circle"></i> Đặt lịch mới</a>
+    </section>
 
     <?php if ($error): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="clinic-alert clinic-alert-danger clinic-page-alert" role="alert"><i class="bi bi-exclamation-circle-fill"></i><span><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></span></div>
     <?php endif; ?>
-
     <?php if ($notice): ?>
-        <div class="alert alert-info"><?= htmlspecialchars($notice, ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="clinic-alert clinic-alert-info clinic-page-alert" role="status"><i class="bi bi-info-circle-fill"></i><span><?= htmlspecialchars($notice, ENT_QUOTES, 'UTF-8') ?></span></div>
     <?php endif; ?>
-
     <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="clinic-alert clinic-alert-success clinic-page-alert" role="status"><i class="bi bi-check-circle-fill"></i><span><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></span></div>
     <?php endif; ?>
-
     <?php if ($cancelMailFailed): ?>
-        <div class="alert alert-warning">Lịch khám đã được hủy thành công nhưng email xác nhận chưa gửi được. Vui lòng liên hệ phòng khám nếu bạn cần xác nhận lại.</div>
+        <div class="clinic-alert clinic-alert-warning clinic-page-alert" role="status"><i class="bi bi-envelope-exclamation"></i><span>Lịch khám đã được hủy thành công nhưng email xác nhận chưa gửi được. Vui lòng liên hệ phòng khám nếu bạn cần xác nhận lại.</span></div>
     <?php elseif ($cancelled): ?>
-        <div class="alert alert-success">Email xác nhận hủy lịch đã được gửi đến địa chỉ email của bạn.</div>
+        <div class="clinic-alert clinic-alert-success clinic-page-alert" role="status"><i class="bi bi-envelope-check"></i><span>Email xác nhận hủy lịch đã được gửi đến địa chỉ email của bạn.</span></div>
     <?php endif; ?>
 
-    <form method="post" class="card card-body shadow-sm mb-4">
-        <input type="hidden" name="action" value="lookup">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Mã tra cứu</label>
-                <input name="MaTraCuu" class="form-control" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Số điện thoại</label>
-                <input name="SoDienThoai" class="form-control" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>" <?= ($maTraCuu !== '' && $sdtRaw === '') ? 'autofocus' : '' ?> required>
-            </div>
-            <div class="col-12">
-                <button class="btn btn-primary">Tra cứu</button>
-            </div>
-        </div>
-    </form>
+    <section class="clinic-lookup-search-card">
+        <div class="clinic-lookup-search-icon"><i class="bi bi-search"></i></div>
+        <div class="clinic-lookup-search-copy"><h2>Nhập thông tin tra cứu</h2><p>Sử dụng mã tra cứu được cấp sau khi đặt lịch và số điện thoại của người đăng ký.</p></div>
+        <form method="post" class="clinic-lookup-form">
+            <input type="hidden" name="action" value="lookup">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+            <div class="clinic-field"><label for="MaTraCuu">Mã tra cứu</label><div class="clinic-input-wrap"><i class="bi bi-ticket-perforated"></i><input id="MaTraCuu" name="MaTraCuu" class="form-control" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>" placeholder="Ví dụ: DL20261118ABC123" autocomplete="off" required></div></div>
+            <div class="clinic-field"><label for="SoDienThoai">Số điện thoại</label><div class="clinic-input-wrap"><i class="bi bi-telephone"></i><input id="SoDienThoai" name="SoDienThoai" type="tel" class="form-control" value="<?= htmlspecialchars($sdt, ENT_QUOTES, 'UTF-8') ?>" placeholder="Số điện thoại đã đăng ký" autocomplete="tel" required></div></div>
+            <button class="clinic-primary-btn" type="submit">Tra cứu lịch <i class="bi bi-arrow-right"></i></button>
+        </form>
+        <div class="clinic-lookup-privacy"><i class="bi bi-shield-lock"></i> Chỉ người có mã tra cứu và số điện thoại phù hợp mới xem được thông tin lịch hẹn.</div>
+    </section>
 
     <?php if ($result): ?>
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h4 class="mb-3">Thông tin lịch khám</h4>
-                <p><strong>Mã tra cứu:</strong> <?= htmlspecialchars($result['MaTraCuu'], ENT_QUOTES, 'UTF-8') ?></p>
-                <p><strong>Bệnh nhân:</strong> <?= htmlspecialchars($result['HoTen'], ENT_QUOTES, 'UTF-8') ?></p>
-                <p><strong>Số điện thoại:</strong> <?= htmlspecialchars($result['SoDienThoai'], ENT_QUOTES, 'UTF-8') ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($result['Email'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
-                <hr>
-                <p><strong>Chuyên khoa:</strong> <?= htmlspecialchars($result['TenChuyenKhoa'], ENT_QUOTES, 'UTF-8') ?></p>
-                <p><strong>Bác sĩ:</strong> <?= htmlspecialchars($result['TenBacSi'], ENT_QUOTES, 'UTF-8') ?></p>
-                <p><strong>Ngày khám:</strong> <?= date('d/m/Y', strtotime($result['NgayKham'])) ?></p>
-                <p><strong>Thời gian:</strong> <?= substr($result['GioBatDau'], 0, 5) ?> - <?= substr($result['GioKetThuc'], 0, 5) ?></p>
-                <p><strong>Phòng:</strong> <?= htmlspecialchars($result['TenPhong'] ?? 'Chưa xác định', ENT_QUOTES, 'UTF-8') ?><?= $result['ViTri'] ? ' - ' . htmlspecialchars($result['ViTri'], ENT_QUOTES, 'UTF-8') : '' ?></p>
-                <p><strong>Lý do khám:</strong> <?= htmlspecialchars($result['LyDoKham'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
-                <p class="mb-0"><strong>Trạng thái:</strong> <?= htmlspecialchars(hienTrangThai($result['TrangThai']), ENT_QUOTES, 'UTF-8') ?></p>
+        <?php
+            $statusClass = match ($result['TrangThai']) {
+                'ChoXacNhan' => 'pending',
+                'DaXacNhan' => 'confirmed',
+                'DaKham' => 'completed',
+                'DaHuy' => 'cancelled',
+                'VangMat' => 'missed',
+                default => 'neutral'
+            };
+            $statusIcon = match ($result['TrangThai']) {
+                'ChoXacNhan' => 'bi-hourglass-split',
+                'DaXacNhan' => 'bi-check-circle',
+                'DaKham' => 'bi-clipboard2-check',
+                'DaHuy' => 'bi-x-circle',
+                'VangMat' => 'bi-person-x',
+                default => 'bi-info-circle'
+            };
+        ?>
+        <section class="clinic-appointment-result">
+            <div class="clinic-result-heading">
+                <div><div class="clinic-eyebrow">KẾT QUẢ TRA CỨU</div><h2>Thông tin lịch khám</h2></div>
+                <span class="clinic-status-pill clinic-status-<?= $statusClass ?>"><i class="bi <?= $statusIcon ?>"></i><?= htmlspecialchars(hienTrangThai($result['TrangThai']), ENT_QUOTES, 'UTF-8') ?></span>
+            </div>
+            <div class="clinic-result-code"><div><small>MÃ TRA CỨU</small><strong><?= htmlspecialchars($result['MaTraCuu'], ENT_QUOTES, 'UTF-8') ?></strong></div><span><i class="bi bi-patch-check-fill"></i> Thông tin lịch hẹn</span></div>
 
-                <?php if (!$cancelled && in_array($result['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && (int)$result['ConHuyDuoc'] === 1): ?>
-                    <hr>
+            <div class="clinic-result-grid">
+                <div class="clinic-result-section">
+                    <div class="clinic-result-section-title"><i class="bi bi-person-vcard"></i><h3>Thông tin bệnh nhân</h3></div>
+                    <div class="clinic-detail-row"><span>Họ và tên</span><strong><?= htmlspecialchars($result['HoTen'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+                    <div class="clinic-detail-row"><span>Số điện thoại</span><strong><?= htmlspecialchars($result['SoDienThoai'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+                    <div class="clinic-detail-row"><span>Email</span><strong><?= htmlspecialchars($result['Email'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong></div>
+                </div>
+                <div class="clinic-result-section">
+                    <div class="clinic-result-section-title"><i class="bi bi-calendar2-week"></i><h3>Thông tin buổi khám</h3></div>
+                    <div class="clinic-detail-row"><span>Chuyên khoa</span><strong><?= htmlspecialchars($result['TenChuyenKhoa'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+                    <div class="clinic-detail-row"><span>Bác sĩ</span><strong><?= htmlspecialchars($result['TenBacSi'], ENT_QUOTES, 'UTF-8') ?></strong></div>
+                    <div class="clinic-detail-row"><span>Ngày khám</span><strong><?= date('d/m/Y', strtotime($result['NgayKham'])) ?></strong></div>
+                    <div class="clinic-detail-row"><span>Thời gian</span><strong><?= substr($result['GioBatDau'], 0, 5) ?> – <?= substr($result['GioKetThuc'], 0, 5) ?></strong></div>
+                    <div class="clinic-detail-row"><span>Phòng khám</span><strong><?= htmlspecialchars($result['TenPhong'] ?? 'Chưa xác định', ENT_QUOTES, 'UTF-8') ?><?= !empty($result['ViTri']) ? ' – ' . htmlspecialchars($result['ViTri'], ENT_QUOTES, 'UTF-8') : '' ?></strong></div>
+                </div>
+            </div>
+            <?php if (!empty($result['LyDoKham'])): ?>
+                <div class="clinic-reason-box"><span>Lý do khám</span><p><?= nl2br(htmlspecialchars($result['LyDoKham'], ENT_QUOTES, 'UTF-8')) ?></p></div>
+            <?php endif; ?>
+
+            <?php if (!$cancelled && in_array($result['TrangThai'], ['ChoXacNhan', 'DaXacNhan'], true) && (int)$result['ConHuyDuoc'] === 1): ?>
+                <div class="clinic-cancel-panel">
+                    <div class="clinic-cancel-panel-heading"><span class="clinic-cancel-icon"><i class="bi bi-shield-lock"></i></span><div><h3>Quản lý lịch hẹn</h3><p>Bạn có thể yêu cầu hủy lịch trước giờ khám bằng mã xác minh gửi qua email.</p></div></div>
                     <?php if ($showOtpForm): ?>
-                        <h5 class="mb-2">Xác minh hủy lịch</h5>
-                        <p class="text-muted">Nhập mã OTP đã được gửi đến email của bạn. Mã có hiệu lực trong 10 phút.</p>
-                        <form method="post" class="row g-2">
+                        <div class="clinic-otp-instructions"><i class="bi bi-envelope-check"></i><span>Nhập mã gồm 6 chữ số đã được gửi đến email của bạn. Mã có hiệu lực trong 10 phút.</span></div>
+                        <form method="post" class="clinic-otp-form">
                             <input type="hidden" name="action" value="confirm_cancel">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                             <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
-                            <div class="col-md-6">
-                                <input type="text" name="MaOTP" class="form-control" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="Nhập mã OTP" required>
-                            </div>
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-danger">Xác nhận hủy lịch</button>
-                            </div>
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt, ENT_QUOTES, 'UTF-8') ?>">
+                            <div class="clinic-field"><label for="MaOTP">Mã xác minh OTP</label><div class="clinic-input-wrap"><i class="bi bi-key"></i><input id="MaOTP" type="text" name="MaOTP" class="form-control clinic-otp-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="Nhập mã 6 chữ số" required></div></div>
+                            <button type="submit" class="clinic-danger-btn">Xác nhận hủy lịch <i class="bi bi-arrow-right"></i></button>
                         </form>
-                        <form method="post" class="mt-2">
+                        <form method="post" class="clinic-resend-form">
                             <input type="hidden" name="action" value="request_cancel_otp">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                             <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
-                            <button type="submit" class="btn btn-link btn-sm p-0">Gửi lại mã xác minh</button>
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt, ENT_QUOTES, 'UTF-8') ?>">
+                            <button type="submit"><i class="bi bi-arrow-repeat"></i> Gửi lại mã xác minh</button>
                         </form>
                     <?php else: ?>
-                        <form method="post">
+                        <form method="post" class="clinic-cancel-request-form">
                             <input type="hidden" name="action" value="request_cancel_otp">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                             <input type="hidden" name="MaTraCuu" value="<?= htmlspecialchars($maTraCuu, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdtRaw, ENT_QUOTES, 'UTF-8') ?>">
-                            <button type="submit" class="btn btn-outline-danger">Hủy lịch khám</button>
+                            <input type="hidden" name="SoDienThoai" value="<?= htmlspecialchars($sdt, ENT_QUOTES, 'UTF-8') ?>">
+                            <button type="submit" class="clinic-danger-outline-btn"><i class="bi bi-calendar-x"></i> Yêu cầu hủy lịch</button>
                         </form>
                     <?php endif; ?>
-                <?php endif; ?>
-            </div>
-        </div>
+                </div>
+            <?php endif; ?>
+        </section>
     <?php endif; ?>
-</div>
+
+    <section class="clinic-lookup-help-row">
+        <div><i class="bi bi-question-circle"></i><span><strong>Không tìm thấy mã tra cứu?</strong><small>Hãy kiểm tra lại mã trong email xác nhận đặt lịch và nhập đúng số điện thoại đã đăng ký.</small></span></div>
+        <a href="../appointment.php">Đặt lịch khám <i class="bi bi-arrow-up-right"></i></a>
+    </section>
+</main>
+
+<footer class="clinic-footer"><span>© <?= date('Y') ?> ClinicCare</span><span>Chăm sóc sức khỏe bằng sự tận tâm</span></footer>
 </body>
 </html>

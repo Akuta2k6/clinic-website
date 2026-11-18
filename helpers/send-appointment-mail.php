@@ -301,7 +301,7 @@ function guiEmailBenhNhanHuyLichThanhCong(array $data): void
         '<div style="margin-bottom:14px;">' . clinicMailStatus('ĐÃ HỦY THÀNH CÔNG', '#eaf8ef', '#18723b') . '</div>' .
         clinicMailDetailCard($rows) .
         clinicMailButton($lookupUrl, 'Tra cứu lịch khám') .
-        clinicMailNotice('Chỗ khám đã được giải phóng cho bệnh nhân khác. Cảm ơn bạn đã chủ động thông báo cho phòng khám.', '#effaf3', '#24613b', '#b7e4c7');
+        clinicMailNotice('Cảm ơn bạn d vì đã tin tưởng sử dịch vụ và đã chủ động thông báo cho phòng khám.', '#effaf3', '#24613b', '#b7e4c7');
 
     $mail->Body = clinicMailLayout(
         $config,
@@ -322,7 +322,7 @@ function guiEmailBenhNhanHuyLichThanhCong(array $data): void
         "Bác sĩ: {$data['TenBacSi']}\n" .
         "Ngày khám: {$ngayKham}\n" .
         "Thời gian: {$gioKham}\n" .
-        "Trạng thái: Đã hủy. Chỗ khám đã được giải phóng.\n\n" .
+        "Trạng thái: Đã hủy.\n\n" .
         "Tra cứu lịch khám: {$lookupUrl}";
 
     $mail->send();
