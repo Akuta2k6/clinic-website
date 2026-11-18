@@ -1,5 +1,5 @@
 -- =========================================================
--- QUAN LY KHAM BENH - DATABASE TONG HOP THEO PHIEN BAN HIEN TAI
+-- QUAN LY KHAM BENH - DATABASE TONG HOP THEO PHIEN BAN HIEN TAI (13 BANG)
 -- Tuong thich voi MariaDB 10.4.x (XAMPP).
 -- Import mot lan de tao cau truc va du lieu khoi tao.
 -- Khong DROP DATABASE va khong xoa cac bang/ban ghi dang co.
@@ -179,6 +179,23 @@ CREATE TABLE IF NOT EXISTS DatLich (
     INDEX idx_datlich_trangthai (TrangThai),
     INDEX idx_datlich_ngaydat (NgayDat)
 ) ENGINE=InnoDB;
+
+
+-- =========================================================
+-- DANH GIA CUA KHACH HANG
+-- =========================================================
+CREATE TABLE IF NOT EXISTS DanhGia (
+    MaDanhGia INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    TenNguoiDanhGia VARCHAR(100) NULL,
+    AnDanh TINYINT(1) NOT NULL DEFAULT 0,
+    SoSao TINYINT UNSIGNED NOT NULL,
+    NoiDung VARCHAR(1000) NOT NULL,
+    NgayDanhGia DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TrangThai ENUM('HienThi', 'An') NOT NULL DEFAULT 'HienThi',
+    CONSTRAINT CK_DanhGia_SoSao CHECK (SoSao BETWEEN 1 AND 5),
+    INDEX idx_danhgia_trangthai_ngay (TrangThai, NgayDanhGia),
+    INDEX idx_danhgia_ngay (NgayDanhGia)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS XacMinhHuyLich (
     MaDatLich INT PRIMARY KEY,
