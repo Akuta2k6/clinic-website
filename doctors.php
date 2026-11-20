@@ -103,7 +103,7 @@ function anhBacSi(?string $path): string {
             </li>
             <li><a href="service-details.html">Dịch vụ</a></li>
             <li><a href="doctors.php" class="active">Bác sĩ</a></li>
-            <li><a href="contact.html">Liên hệ</a></li>
+            <li><a href="contact.php">Liên hệ</a></li>
             <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="testimonials.php">Đánh giá</a></li>
@@ -417,7 +417,7 @@ function anhBacSi(?string $path): string {
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
                       <a href="service-details.html">Dịch vụ</a>
-                      <a href="contact.html">Liên hệ</a>
+                      <a href="contact.php">Liên hệ</a>
                     </nav>
 
                   </div>
@@ -449,7 +449,7 @@ function anhBacSi(?string $path): string {
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
                       <a href="doctors.php">Tìm bác sĩ</a>
-                      <a href="contact.html">Liên hệ</a>
+                      <a href="contact.php">Liên hệ</a>
                       <a href="login.php">Đăng nhập</a>
                     </nav>
 
@@ -464,9 +464,9 @@ function anhBacSi(?string $path): string {
 
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
-                      <a href="contact.html">Thông tin liên hệ</a>
-                      <a href="contact.html">Vị trí bệnh viện</a>
-                      <a href="contact.html">Hỗ trợ bệnh nhân</a>
+                      <a href="contact.php">Thông tin liên hệ</a>
+                      <a href="contact.php">Vị trí bệnh viện</a>
+                      <a href="contact.php">Hỗ trợ bệnh nhân</a>
                       <a href="tel:115">Cấp cứu</a>
                     </nav>
 

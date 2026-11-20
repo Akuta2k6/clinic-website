@@ -496,3 +496,41 @@ UNION ALL SELECT 'Thuoc', COUNT(*) FROM Thuoc
 UNION ALL SELECT 'HoSoKham', COUNT(*) FROM HoSoKham
 UNION ALL SELECT 'DonThuoc', COUNT(*) FROM DonThuoc
 UNION ALL SELECT 'ChiTietDonThuoc', COUNT(*) FROM ChiTietDonThuoc;
+
+-- =========================================================
+-- 10. LIEN HE VA LICH SU PHAN HOI
+-- =========================================================
+CREATE TABLE IF NOT EXISTS LienHe (
+    MaLienHe INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    HoTen VARCHAR(100) NOT NULL,
+    Email VARCHAR(150) NOT NULL,
+    SoDienThoai VARCHAR(20) NULL,
+    ChuDe VARCHAR(150) NOT NULL,
+    NoiDung TEXT NOT NULL,
+    NgayGui DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TrangThai ENUM('Moi', 'DangXuLy', 'DaPhanHoi', 'DaDong') NOT NULL DEFAULT 'Moi',
+    TrangThaiThongBao ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    TrangThaiXacNhan ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    NgayCapNhat DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_lienhe_trangthai_ngay (TrangThai, NgayGui),
+    INDEX idx_lienhe_email (Email),
+    INDEX idx_lienhe_ngaygui (NgayGui)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS LienHePhanHoi (
+    MaPhanHoi INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    MaLienHe INT UNSIGNED NOT NULL,
+    MaTK INT NULL,
+    TenNguoiPhanHoi VARCHAR(100) NOT NULL,
+    NoiDung TEXT NOT NULL,
+    NgayPhanHoi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TrangThaiEmail ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    ThongBaoLoi VARCHAR(500) NULL,
+    CONSTRAINT FK_LienHePhanHoi_LienHe
+        FOREIGN KEY (MaLienHe) REFERENCES LienHe(MaLienHe)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_LienHePhanHoi_TaiKhoan
+        FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    INDEX idx_lienhephanhoi_lienhe_ngay (MaLienHe, NgayPhanHoi)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

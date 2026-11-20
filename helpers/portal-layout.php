@@ -64,12 +64,19 @@ function clinicPortalShellStart(string $role, string $pageTitle, string $activeP
                AND dl.TrangThai = 'ChoXacNhan'"
         );
         $pendingCount = (int)$stmt->fetchColumn();
+        $newContactCount = 0;
+        try {
+            $newContactCount = (int)$pdo->query("SELECT COUNT(*) FROM LienHe WHERE TrangThai = 'Moi'")->fetchColumn();
+        } catch (PDOException $exception) {
+            $newContactCount = 0;
+        }
         $nav = [
             ['key' => 'dashboard', 'href' => 'dashboard.php', 'icon' => 'bi-grid-1x2-fill', 'label' => 'Tổng quan'],
             ['key' => 'doctors', 'href' => 'doctors.php', 'icon' => 'bi-person-badge', 'label' => 'Quản lý bác sĩ'],
             ['key' => 'specialties', 'href' => 'specialties.php', 'icon' => 'bi-hospital', 'label' => 'Chuyên khoa'],
             ['key' => 'rooms', 'href' => 'rooms.php', 'icon' => 'bi-door-open', 'label' => 'Phòng khám'],
             ['key' => 'appointments', 'href' => 'appointments.php', 'icon' => 'bi-calendar2-check', 'label' => 'Lịch hẹn', 'count' => $pendingCount],
+            ['key' => 'contacts', 'href' => 'contacts.php', 'icon' => 'bi-envelope-paper', 'label' => 'Quản lý liên hệ', 'count' => $newContactCount],
             ['key' => 'medicines', 'href' => 'medicines.php', 'icon' => 'bi-capsule', 'label' => 'Quản lý thuốc']
         ];
         $sectionLabel = 'QUẢN TRỊ HỆ THỐNG';
@@ -82,7 +89,7 @@ function clinicPortalShellStart(string $role, string $pageTitle, string $activeP
 
     echo '<div class="dashboard-shell">';
     echo '<aside class="dashboard-sidebar" id="dashboardSidebar">';
-    echo '<a class="sidebar-brand" href="' . $brandHref . '"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span></a>';
+    echo '<a class="sidebar-brand" href="' . $brandHref . '"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span></a>';
     echo '<div class="sidebar-caption">' . clinicPortalEscape($sectionLabel) . '</div><nav class="sidebar-nav">';
 
     foreach ($nav as $item) {

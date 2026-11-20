@@ -1,10 +1,146 @@
+<?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+$contactSettings = require __DIR__ . '/config/contact.php';
+$contactEmail = (string)$contactSettings['receiving_email'];
+
+function contactEscape($value): string
+{
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function contactLength(string $value): int
+{
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+
+    $count = preg_match_all('/./us', $value, $matches);
+    return $count === false ? strlen($value) : $count;
+}
+
+$contactSubjects = [
+    'Tư vấn dịch vụ khám chữa bệnh',
+    'Hỏi đáp về lịch khám',
+    'Hỗ trợ đặt lịch khám',
+    'Góp ý chất lượng dịch vụ',
+    'Khiếu nại',
+    'Khác'
+];
+
+if (empty($_SESSION['contact_csrf'])) {
+    $_SESSION['contact_csrf'] = bin2hex(random_bytes(32));
+}
+
+$csrfToken = $_SESSION['contact_csrf'];
+$success = (string)($_SESSION['contact_flash'] ?? '');
+unset($_SESSION['contact_flash']);
+$error = '';
+$formData = [
+    'HoTen' => '',
+    'Email' => '',
+    'SoDienThoai' => '',
+    'ChuDe' => '',
+    'NoiDung' => ''
+];
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    foreach ($formData as $key => $default) {
+        $value = $_POST[$key] ?? '';
+        $formData[$key] = is_string($value) ? trim($value) : '';
+    }
+
+    $submittedToken = $_POST['csrf_token'] ?? '';
+    $honeypot = $_POST['website'] ?? '';
+    $phonePattern = '/^[0-9+().\-\s]{8,20}$/';
+
+    if (!is_string($submittedToken) || !hash_equals($csrfToken, $submittedToken)) {
+        $error = 'Phiên gửi biểu mẫu đã hết hạn. Vui lòng tải lại trang và thử lại.';
+    } elseif (!is_string($honeypot) || trim($honeypot) !== '') {
+        $error = 'Không thể tiếp nhận yêu cầu lúc này. Vui lòng thử lại sau.';
+    } elseif (isset($_SESSION['contact_last_submit']) && time() - (int)$_SESSION['contact_last_submit'] < 20) {
+        $error = 'Bạn vừa gửi một yêu cầu. Vui lòng chờ ít nhất 20 giây trước khi gửi tiếp.';
+    } elseif ($formData['HoTen'] === '' || contactLength($formData['HoTen']) > 100) {
+        $error = 'Vui lòng nhập họ tên không quá 100 ký tự.';
+    } elseif (!filter_var($formData['Email'], FILTER_VALIDATE_EMAIL) || strlen($formData['Email']) > 150) {
+        $error = 'Địa chỉ email không hợp lệ.';
+    } elseif ($formData['SoDienThoai'] !== '' && !preg_match($phonePattern, $formData['SoDienThoai'])) {
+        $error = 'Số điện thoại không hợp lệ.';
+    } elseif (!in_array($formData['ChuDe'], $contactSubjects, true)) {
+        $error = 'Vui lòng chọn chủ đề liên hệ.';
+    } elseif (contactLength($formData['NoiDung']) < 10 || contactLength($formData['NoiDung']) > 3000) {
+        $error = 'Nội dung liên hệ phải có từ 10 đến 3.000 ký tự.';
+    } else {
+        require_once __DIR__ . '/config/database.php';
+
+        try {
+            $stmt = $pdo->prepare(
+                "INSERT INTO LienHe (HoTen, Email, SoDienThoai, ChuDe, NoiDung, NgayGui, TrangThai)
+                 VALUES (:hoten, :email, :sodienthoai, :chude, :noidung, NOW(), 'Moi')"
+            );
+            $stmt->execute([
+                ':hoten' => $formData['HoTen'],
+                ':email' => $formData['Email'],
+                ':sodienthoai' => $formData['SoDienThoai'] !== '' ? $formData['SoDienThoai'] : null,
+                ':chude' => $formData['ChuDe'],
+                ':noidung' => $formData['NoiDung']
+            ]);
+
+            $contactId = (int)$pdo->lastInsertId();
+            $contactRecord = $formData + ['MaLienHe' => $contactId];
+            $notificationSent = false;
+            $confirmationSent = false;
+
+            require_once __DIR__ . '/helpers/contact-mail.php';
+
+            try {
+                clinicContactSendNotification($contactRecord);
+                $notificationSent = true;
+            } catch (Throwable $mailError) {
+                $notificationSent = false;
+            }
+
+            try {
+                clinicContactSendConfirmation($contactRecord);
+                $confirmationSent = true;
+            } catch (Throwable $mailError) {
+                $confirmationSent = false;
+            }
+
+            $statusStmt = $pdo->prepare(
+                'UPDATE LienHe SET TrangThaiThongBao = ?, TrangThaiXacNhan = ? WHERE MaLienHe = ?'
+            );
+            $statusStmt->execute([
+                $notificationSent ? 'DaGui' : 'ThatBai',
+                $confirmationSent ? 'DaGui' : 'ThatBai',
+                $contactId
+            ]);
+
+            $_SESSION['contact_last_submit'] = time();
+            $_SESSION['contact_csrf'] = bin2hex(random_bytes(32));
+            $_SESSION['contact_flash'] = $confirmationSent
+                ? 'Yêu cầu của bạn đã được ghi nhận. Email xác nhận đã được gửi đến hộp thư của bạn.'
+                : 'Yêu cầu của bạn đã được lưu vào hệ thống. Bộ phận hỗ trợ sẽ tiếp nhận và phản hồi trong thời gian sớm nhất.';
+            header('Location: contact.php#contact-form');
+            exit;
+        } catch (PDOException $exception) {
+            $error = 'Chưa thể lưu yêu cầu liên hệ. Vui lòng thử lại sau.';
+        }
+    }
+}
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Liên hệ</title>
+  <title>Liên hệ | Bệnh viện Đa khoa Tôn Đức Thắng</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
 
@@ -13,6 +149,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
@@ -30,6 +167,7 @@
 
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
+  <link href="assets/css/contact-form.css" rel="stylesheet">
 
   <!-- =======================================================
   * Template Name: Clinic
@@ -48,7 +186,7 @@
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:tdtuclinic@gmail.com">tdtuclinic@gmail.com</a></i>
+              href="mailto:<?= contactEscape($contactEmail) ?>"><?= contactEscape($contactEmail) ?></a></i>
           <i class="bi bi-phone d-flex align-items-center ms-4"><span>115</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
@@ -63,7 +201,7 @@
     <div class="branding d-flex align-items-cente">
 
       <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="index.php" class="logo d-flex align-items-center">
+        <a href="index.html" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
           <img src="assets/img/logo.jpg" alt="">
           <h1 class="sitename">Bệnh viện đa khoa Tôn Đức Thắng</h1>
@@ -71,7 +209,7 @@
 
         <nav id="navmenu" class="navmenu">
           <ul>
-            <li><a href="index.php">Trang chủ</a></li>
+            <li><a href="index.html">Trang chủ</a></li>
             <li><a href="about.html">Giới thiệu</a></li>
             <li class="dropdown"><a href="department-details.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -82,9 +220,15 @@
               <li><a href="departments.html#departments-tabs-cardiology">Khoa Tim Mạch</a></li>
             </ul>
             </li>
-            <li><a href="service-details.html">Dịch vụ</a></li>
+            <li class="dropdown"><a href="service-details.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <ul>
+              <li><a href="appointment.php">Đặt lịch khám</a></li>
+              <li><a href="testing.php">Xét nghiệm</a></li>
+              <li><a href="vaccination.php">Tiêm ngừa</a></li>
+            </ul>
+            </li>
             <li><a href="doctors.php">Bác sĩ</a></li>
-            <li><a href="contact.html" class="active">Liên hệ</a></li>
+            <li><a href="contact.php" class="active">Liên hệ</a></li>
             <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="testimonials.php">Đánh giá</a></li>
@@ -129,7 +273,7 @@
       <nav class="breadcrumbs">
         <div class="container">
           <ol>
-            <li><a href="index.php">Trang chủ</a></li>
+            <li><a href="index.html">Trang chủ</a></li>
             <li class="current">Liên hệ</li>
           </ol>
         </div>
@@ -178,7 +322,7 @@
 
                   <h3>Email</h3>
 
-                  <p>tdtuclinic@gmail.com</p>
+                  <p><?= contactEscape($contactEmail) ?></p>
 
                 </div>
 
@@ -221,68 +365,54 @@
                 hỗ trợ bạn trong thời gian sớm nhất.
               </p>
 
-              <form action="#" method="post" class="php-email-form">
-
-                <div class="row g-4">
-
-                  <div class="col-md-6">
-                    <input type="text"
-                          class="form-control"
-                          name="name"
-                          id="name"
-                          placeholder="Họ và tên"
-                          required>
-                  </div>
-
-                  <div class="col-md-6">
-                    <input type="email"
-                          class="form-control"
-                          name="email"
-                          id="email"
-                          placeholder="Email"
-                          required>
-                  </div>
-
-                  <div class="col-12">
-                    <input type="text"
-                          class="form-control"
-                          name="subject"
-                          id="subject"
-                          placeholder="Chủ đề"
-                          required>
-                  </div>
-
-                  <div class="col-12">
-                    <textarea class="form-control"
-                              name="message"
-                              id="message"
-                              placeholder="Nội dung liên hệ"
-                              rows="6"
-                              required></textarea>
-                  </div>
-
-                  <div class="col-12">
-
-                    <div class="loading">Đang xử lý</div>
-
-                    <div class="error-message"></div>
-
-                    <div class="sent-message">
-                      Tin nhắn của bạn đã được gửi. Cảm ơn bạn!
-                    </div>
-
-                  </div>
-
-                  <div class="col-12">
-
-                    <button type="submit" class="btn btn-submit">
-                      Gửi liên hệ
-                    </button>
-
-                  </div>
-
+              <form id="contact-form" action="contact.php#contact-form" method="post" class="contact-form">
+                <input type="hidden" name="csrf_token" value="<?= contactEscape($csrfToken) ?>">
+                <div class="contact-honeypot" aria-hidden="true">
+                  <label for="website">Không điền trường này</label>
+                  <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
                 </div>
 
+                <?php if ($success !== ''): ?>
+                  <div class="alert alert-success" role="status"><?= contactEscape($success) ?></div>
+                <?php endif; ?>
+                <?php if ($error !== ''): ?>
+                  <div class="alert alert-danger" role="alert"><?= contactEscape($error) ?></div>
+                <?php endif; ?>
+
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label" for="name">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="HoTen" id="name" maxlength="100" value="<?= contactEscape($formData['HoTen']) ?>" placeholder="Nhập họ và tên" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" name="Email" id="email" maxlength="150" value="<?= contactEscape($formData['Email']) ?>" placeholder="name@example.com" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="phone">Số điện thoại</label>
+                    <input type="tel" class="form-control" name="SoDienThoai" id="phone" maxlength="20" value="<?= contactEscape($formData['SoDienThoai']) ?>" placeholder="Nhập số điện thoại">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="subject">Chủ đề <span class="text-danger">*</span></label>
+                    <select class="form-select" name="ChuDe" id="subject" required>
+                      <option value="">Chọn chủ đề liên hệ</option>
+                      <?php foreach ($contactSubjects as $subject): ?>
+                        <option value="<?= contactEscape($subject) ?>" <?= $formData['ChuDe'] === $subject ? 'selected' : '' ?>><?= contactEscape($subject) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="message">Nội dung liên hệ <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="NoiDung" id="message" rows="6" maxlength="3000" placeholder="Nhập nội dung cần hỗ trợ (không gửi thông tin bệnh án hoặc dữ liệu sức khỏe nhạy cảm tại đây)" required><?= contactEscape($formData['NoiDung']) ?></textarea>
+                    <small class="form-text">Từ 10 đến 3.000 ký tự. Không sử dụng biểu mẫu này cho trường hợp cấp cứu.</small>
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-submit">
+                      <i class="bi bi-send me-2"></i>Gửi yêu cầu liên hệ
+                    </button>
+                    <p class="small text-muted mt-3 mb-0">Thông tin được sử dụng để tiếp nhận và phản hồi yêu cầu của bạn.</p>
+                  </div>
+                </div>
               </form>
 
             </div>
@@ -301,13 +431,14 @@
         <div class="map-overlay"></div>
 
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3920.025543701688!2d106.6991429!3d10.7325132!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317528b2747a81a3%3A0x33c1813055acb613!2sTon%20Duc%20Thang%20University!5e0!3m2!1sen!2s!4v1794756551690!5m2!1sen!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+          title="Bản đồ vị trí Bệnh viện Đa khoa Tôn Đức Thắng"
+          src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3920.025543701688!2d106.6991429!3d10.7325132!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317528b2747a81a3%3A0x33c1813055acb613!2sTon%20Duc%20Thang%20University!5e0!3m2!1sen!2s!4v1794756551690!5m2!1sen!2s"
           width="100%"
-          height="500"
+          height="450"
           style="border:0;"
-          allowfullscreen=""
+          allowfullscreen
           loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
+          referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
 
       </div>
@@ -328,7 +459,7 @@
           <div class="col-lg-5">
             <div class="brand-section">
 
-              <a href="index.php" class="logo d-flex align-items-center mb-4">
+              <a href="index.html" class="logo d-flex align-items-center mb-4">
                 <span class="sitename">Bệnh viện</span>
               </a>
 
@@ -351,7 +482,7 @@
 
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
-                  <span>tdtuclinic@gmail.com</span>
+                  <span><?= contactEscape($contactEmail) ?></span>
                 </div>
 
               </div>
@@ -372,11 +503,11 @@
                     <h6>Thông tin</h6>
 
                     <nav class="footer-nav">
-                      <a href="index.php">Trang chủ</a>
+                      <a href="index.html">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
                       <a href="service-details.html">Dịch vụ</a>
-                      <a href="contact.html">Liên hệ</a>
+                      <a href="contact.php">Liên hệ</a>
                     </nav>
 
                   </div>
@@ -408,7 +539,7 @@
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
                       <a href="doctors.php">Tìm bác sĩ</a>
-                      <a href="contact.html">Liên hệ</a>
+                      <a href="contact.php">Liên hệ</a>
                       <a href="login.php">Đăng nhập</a>
                     </nav>
 
@@ -423,9 +554,9 @@
 
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
-                      <a href="contact.html">Thông tin liên hệ</a>
-                      <a href="contact.html">Vị trí bệnh viện</a>
-                      <a href="contact.html">Hỗ trợ bệnh nhân</a>
+                      <a href="contact.php">Thông tin liên hệ</a>
+                      <a href="contact.php">Vị trí bệnh viện</a>
+                      <a href="contact.php">Hỗ trợ bệnh nhân</a>
                       <a href="tel:115">Cấp cứu</a>
                     </nav>
 
@@ -492,7 +623,6 @@
 
   <!-- Vendor JS Files -->
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
   <script src="assets/vendor/aos/aos.js"></script>
   <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>

@@ -6,6 +6,6 @@ return [
     'username' => 'tdtuclinic@gmail.com',
     'password' => 'zychjlkcqynmcvel',
     'from_email' => 'tdtuclinic@gmail.com',
-    'from_name' => 'Phòng khám Clinic',
+    'from_name' => 'Bệnh viện đa khoa Tôn Đức Thắng',
     'base_url' => 'http://localhost/finalProject/clinic-website'
 ];

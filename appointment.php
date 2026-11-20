@@ -157,7 +157,7 @@ if ($maBSYeuCau !== '') {
             </div>
             <div class="clinic-aside-card clinic-aside-support">
                 <div class="clinic-support-icon"><i class="bi bi-headset"></i></div>
-                <div><strong>Cần hỗ trợ?</strong><p>Nếu gặp khó khăn khi đặt lịch, bạn có thể quay lại trang chủ để xem thông tin liên hệ của phòng khám.</p><a href="contact.html">Thông tin liên hệ <i class="bi bi-arrow-up-right"></i></a></div>
+                <div><strong>Cần hỗ trợ?</strong><p>Nếu gặp khó khăn khi đặt lịch, bạn có thể quay lại trang chủ để xem thông tin liên hệ của phòng khám.</p><a href="contact.php">Thông tin liên hệ <i class="bi bi-arrow-up-right"></i></a></div>
             </div>
         </aside>
     </div>

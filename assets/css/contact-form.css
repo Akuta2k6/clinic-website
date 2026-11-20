@@ -1,0 +1,63 @@
+.contact-form .form-label {
+  margin-bottom: 7px;
+  color: #24364b;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.contact-form .form-control,
+.contact-form .form-select {
+  min-height: 48px;
+  border: 1px solid #dce5ee;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.contact-form textarea.form-control {
+  min-height: 150px;
+  padding-top: 13px;
+}
+
+.contact-form .form-control:focus,
+.contact-form .form-select:focus {
+  border-color: #70a9dc;
+  box-shadow: 0 0 0 3px rgba(39, 133, 232, .12);
+}
+
+.contact-form .form-text {
+  display: block;
+  margin-top: 7px;
+  color: #78899a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.contact-form .btn-submit {
+  min-height: 48px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 9px;
+  background: #1769aa;
+  color: #fff;
+  font-weight: 700;
+}
+
+.contact-form .btn-submit:hover {
+  background: #12578f;
+  color: #fff;
+}
+
+.contact-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.contact-form .alert {
+  margin-bottom: 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
