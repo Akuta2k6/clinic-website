@@ -299,6 +299,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <nav class="clinic-nav" aria-label="Điều hướng chính">
             <a href="../index.html"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
             <a href="../appointment.php"><i class="bi bi-calendar2-plus"></i><span>Đặt lịch khám</span></a>
+            <a href="../testing.php"><i class="bi bi-eyedropper"></i><span>Xét nghiệm</span></a>
+            <a href="../vaccination.php"><i class="bi bi-shield-plus"></i><span>Tiêm ngừa</span></a>
             <a class="active" href="lookup.php"><i class="bi bi-search"></i><span>Tra cứu lịch</span></a>
             <a href="../login.php"><i class="bi bi-person-lock"></i><span>Đăng nhập</span></a>
         </nav>

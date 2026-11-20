@@ -59,8 +59,8 @@ function anhBacSi(?string $path): string {
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:contact@example.com">contact@example.com</a></i>
-          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+1 5589 55488 55</span></i>
+              href="mailto:cliniccare.tdtu@gmail.com">cliniccare.tdtu@gmail.com</a></i>
+          <i class="bi bi-phone d-flex align-items-center ms-4"><span>115</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
           <a href="#!" class="twitter"><i class="bi bi-twitter-x"></i></a>
@@ -76,15 +76,15 @@ function anhBacSi(?string $path): string {
       <div class="container position-relative d-flex align-items-center justify-content-between">
         <a href="index.html" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
-          <!-- <img src="assets/img/logo.webp" alt=""> -->
-          <h1 class="sitename">Clinic</h1>
+          <img src="assets/img/logo.jpg" alt="">
+          <h1 class="sitename">Bệnh viện đa khoa Tôn Đức Thắng</h1>
         </a>
 
         <nav id="navmenu" class="navmenu">
           <ul>
             <li><a href="index.html">Trang chủ</a></li>
             <li><a href="about.html">Giới thiệu</a></li>
-            <li class="dropdown"><a href="departments.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <li class="dropdown"><a href="department-details.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="departments.html#departments-tabs-neurology">Khoa Nội</a></li>  
               <li><a href="departments.html#departments-tabs-surgery">Khoa Ngoại</a></li>
@@ -93,24 +93,17 @@ function anhBacSi(?string $path): string {
               <li><a href="departments.html#departments-tabs-cardiology">Khoa Tim Mạch</a></li>
             </ul>
             </li>
-            <li class="dropdown"><a href="services.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <li class="dropdown"><a href="service-details.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="">Tim mạch</a></li>
-              <li><a href="">Nội khoa</a></li>
-              <li><a href="">Ngoại khoa</a></li>
-              <li><a href="">Răng hàm mặt</a></li>
-              <li><a href="">Mắt</a></li>
-              <li><a href="">Xét nghiệm</a></li>
-              <li><a href="">Tiêm ngừa</a></li>
+              <li><a href="appointment.php">Đặt lịch khám</a></li>
+              <li><a href="testing.php">Xét nghiệm</a></li>
+              <li><a href="vaccination.php">Tiêm ngừa</a></li>
             </ul>
             </li>
             <li><a href="doctors.php" class="active">Bác sĩ</a></li>
             <li><a href="contact.html">Liên hệ</a></li>
             <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="department-details.html">Chi tiết khoa</a></li>
-              <li><a href="service-details.html">Chi tiết dịch vụ</a></li>
-              <li><a href="appointment.php">Đặt lịch khám</a></li>
               <li><a href="testimonials.php">Đánh giá</a></li>
               <li><a href="faq.html">Câu hỏi thường gặp</a></li>
               <li><a href="terms.html">Điều khoản</a></li>
@@ -256,12 +249,12 @@ function anhBacSi(?string $path): string {
 
                 <div class="contact-item">
                   <i class="bi bi-telephone"></i>
-                  <span>+84 000 000 0000</span>
+                  <span>115</span>
                 </div>
 
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
-                  <span>info@benhvien.vn</span>
+                  <span>cliniccare.tdtu@gmail.com</span>
                 </div>
 
               </div>
@@ -285,7 +278,7 @@ function anhBacSi(?string $path): string {
                       <a href="index.html">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
-                      <a href="services.html">Dịch vụ</a>
+                      <a href="service-details.html">Dịch vụ</a>
                       <a href="contact.html">Liên hệ</a>
                     </nav>
 
@@ -299,11 +292,11 @@ function anhBacSi(?string $path): string {
                     <h6>Chuyên khoa</h6>
 
                     <nav class="footer-nav">
-                      <a href="services.html">Khoa Nội</a>
-                      <a href="services.html">Khoa Ngoại</a>
-                      <a href="services.html">Răng Hàm Mặt</a>
-                      <a href="services.html">Khoa Mắt</a>
-                      <a href="services.html">Khoa Tim mạch</a>
+                      <a href="departments.html#departments-tabs-neurology">Khoa Nội</a>
+                      <a href="departments.html#departments-tabs-surgery">Khoa Ngoại</a>
+                      <a href="departments.html#departments-tabs-dental">Răng Hàm Mặt</a>
+                      <a href="departments.html#departments-tabs-ophthalmology">Khoa Mắt</a>
+                      <a href="departments.html#departments-tabs-cardiology">Khoa Tim mạch</a>
                     </nav>
 
                   </div>
@@ -318,7 +311,6 @@ function anhBacSi(?string $path): string {
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
                       <a href="doctors.php">Tìm bác sĩ</a>
-                      <a href="services.html">Khám chuyên khoa</a>
                       <a href="contact.html">Liên hệ</a>
                       <a href="login.php">Đăng nhập</a>
                     </nav>
@@ -367,7 +359,7 @@ function anhBacSi(?string $path): string {
 
                 <p>
                   © <span class="sitename">Bệnh viện</span>.
-                  All rights reserved.
+                  Mọi quyền được bảo lưu.
                 </p>
 
               </div>
@@ -377,9 +369,8 @@ function anhBacSi(?string $path): string {
 
               <div class="legal-links">
 
-                <a href="#!">Chính sách bảo mật</a>
-                <a href="#!">Điều khoản sử dụng</a>
-                <a href="#!">Chính sách</a>
+                <a href="privacy.html">Chính sách bảo mật</a>
+                <a href="terms.html">Điều khoản sử dụng</a>
 
               </div>
 

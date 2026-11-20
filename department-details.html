@@ -47,8 +47,8 @@
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:contact@example.com">contact@example.com</a></i>
-          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+84 000 000 0000</span></i>
+              href="mailto:contact@example.com">cliniccare.tdtu@gmail.com</a></i>
+          <i class="bi bi-phone d-flex align-items-center ms-4"><span>115</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
           <a href="#!" class="twitter"><i class="bi bi-twitter-x"></i></a>
@@ -64,15 +64,15 @@
       <div class="container position-relative d-flex align-items-center justify-content-between">
         <a href="index.html" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
-          <!-- <img src="assets/img/logo.webp" alt=""> -->
-          <h1 class="sitename">Clinic</h1>
+          <img src="assets/img/logo.jpg" alt="">
+          <h1 class="sitename">Bệnh viện đa khoa Tôn Đức Thắng</h1>
         </a>
 
         <nav id="navmenu" class="navmenu">
           <ul>
             <li><a href="index.html">Trang chủ</a></li>
             <li><a href="about.html">Giới thiệu</a></li>
-            <li class="dropdown"><a href="departments.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <li class="dropdown"><a href="department-details.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="departments.html#departments-tabs-neurology">Khoa Nội</a></li>  
               <li><a href="departments.html#departments-tabs-surgery">Khoa Ngoại</a></li>
@@ -81,24 +81,17 @@
               <li><a href="departments.html#departments-tabs-cardiology">Khoa Tim Mạch</a></li>
             </ul>
             </li>
-            <li class="dropdown"><a href="services.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+            <li class="dropdown"><a href="service-details.html"><span>Dịch vụ</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="">Tim mạch</a></li>
-              <li><a href="">Nội khoa</a></li>
-              <li><a href="">Ngoại khoa</a></li>
-              <li><a href="">Răng hàm mặt</a></li>
-              <li><a href="">Mắt</a></li>
-              <li><a href="">Xét nghiệm</a></li>
-              <li><a href="">Tiêm ngừa</a></li>
+              <li><a href="appointment.php">Đặt lịch khám</a></li>
+              <li><a href="testing.php">Xét nghiệm</a></li>
+              <li><a href="vaccination.php">Tiêm ngừa</a></li>
             </ul>
             </li>
             <li><a href="doctors.php">Bác sĩ</a></li>
             <li><a href="contact.html">Liên hệ</a></li>
             <li class="dropdown"><a href="#"><span>Thêm</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="department-details.html" class="active">Chi tiết khoa</a></li>
-              <li><a href="service-details.html">Chi tiết dịch vụ</a></li>
-              <li><a href="appointment.php">Đặt lịch khám</a></li>
               <li><a href="testimonials.php">Đánh giá</a></li>
               <li><a href="faq.html">Câu hỏi thường gặp</a></li>
               <li><a href="terms.html">Điều khoản</a></li>
@@ -124,11 +117,9 @@
         <div class="container">
           <div class="row d-flex justify-content-center text-center">
             <div class="col-lg-8">
-              <h1 class="heading-title">Chi tiết khoa</h1>
+              <h1 class="heading-title">Khoa</h1>
               <p class="mb-0">
-                Tìm hiểu thông tin chi tiết về các khoa chuyên môn, dịch vụ khám
-                và đội ngũ bác sĩ. Người bệnh có thể lựa chọn chuyên khoa phù hợp
-                và đặt lịch khám một cách thuận tiện.
+                Tìm hiểu thông tin chi tiết về các khoa chuyên môn, dịch vụ khám và đội ngũ bác sĩ. Người bệnh có thể lựa chọn chuyên khoa phù hợp và đặt lịch khám một cách thuận tiện.
               </p>
             </div>
           </div>
@@ -139,7 +130,7 @@
         <div class="container">
           <ol>
             <li><a href="index.html">Trang chủ</a></li>
-            <li class="current">Chi tiết khoa</li>
+            <li class="current">Khoa</li>
           </ol>
         </div>
       </nav>
@@ -149,296 +140,62 @@
     <!-- Department Details Section -->
     <section id="department-details" class="department-details section">
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="department-container">
 
-        <div class="row">
-          <div class="col-xl-6 col-lg-7">
-            <div class="department-hero" data-aos="fade-right" data-aos-delay="200">
-
-              <div class="badge-wrap">
-                <span class="specialty-badge">Khoa Nội</span>
+          <!-- Khoa Tim mạch -->
+          <a href="departments.html#departments-tabs-cardiology" class="department-card">
+              <div class="department-icon">
+                  <i class="fa-solid fa-heart-pulse"></i>
               </div>
-
-              <h1 class="department-title">Chăm sóc và điều trị Nội khoa</h1>
-
-              <p class="department-intro">
-                Khoa Nội cung cấp các dịch vụ khám, tư vấn và điều trị các bệnh lý
-                nội khoa thường gặp. Đội ngũ bác sĩ hỗ trợ người bệnh trong quá trình
-                thăm khám, chẩn đoán và theo dõi sức khỏe.
-              </p>
-
-              <div class="key-highlights">
-
-                <div class="highlight-item">
-                  <span class="highlight-number">24/7</span>
-                  <span class="highlight-text">Hỗ trợ cấp cứu</span>
-                </div>
-
-                <div class="highlight-item">
-                  <span class="highlight-number">02</span>
-                  <span class="highlight-text">Bác sĩ Nội khoa</span>
-                </div>
-
-                <div class="highlight-item">
-                  <span class="highlight-number">5</span>
-                  <span class="highlight-text">Khoa chuyên môn</span>
-                </div>
-
+              <div class="department-info">
+                  <h3>Khoa Tim mạch</h3>
+                  <p>Xem chi tiết</p>
               </div>
+          </a>
 
-              <div class="action-group">
-                <a href="appointment.php" class="btn-primary">
-                  Đặt lịch khám
-                </a>
-
-                <a href="services.html" class="btn-secondary">
-                  <span>Xem các dịch vụ</span>
-                  <i class="bi bi-arrow-right"></i>
-                </a>
+          <!-- Khoa Nội -->
+          <a href="departments.html#departments-tabs-neurology" class="department-card">
+              <div class="department-icon">
+                  <i class="fa-solid fa-stethoscope"></i>
               </div>
-
-            </div>
-          </div>
-
-          <div class="col-xl-6 col-lg-5">
-            <div class="department-visual" data-aos="fade-left" data-aos-delay="300">
-
-              <div class="image-container">
-                <img src="assets/img/health/neurology-2.webp"
-                    alt="Khoa Nội"
-                    class="img-fluid primary-image">
-
-                <div class="floating-card" data-aos="zoom-in" data-aos-delay="500">
-
-                  <div class="card-icon">
-                    <i class="bi bi-heart-pulse"></i>
-                  </div>
-
-                  <div class="card-content">
-                    <h4>Đội ngũ bác sĩ Nội khoa</h4>
-                    <p>
-                      Khám, tư vấn và theo dõi sức khỏe phù hợp với nhu cầu của người bệnh.
-                    </p>
-                  </div>
-
-                </div>
+              <div class="department-info">
+                  <h3>Khoa Nội</h3>
+                  <p>Xem chi tiết</p>
               </div>
+          </a>
 
-            </div>
-          </div>
-        </div>
-
-
-        <!-- Services Overview -->
-        <div class="services-overview" data-aos="fade-up" data-aos-delay="400">
-
-          <div class="row justify-content-center">
-            <div class="col-lg-8">
-
-              <div class="overview-header">
-                <h3>Dịch vụ của Khoa Nội</h3>
-
-                <p>
-                  Khoa Nội cung cấp các dịch vụ khám và chăm sóc sức khỏe,
-                  hỗ trợ người bệnh trong quá trình kiểm tra, chẩn đoán và điều trị.
-                </p>
+          <!-- Khoa Ngoại -->
+          <a href="departments.html#departments-tabs-surgery" class="department-card">
+              <div class="department-icon">
+                  <i class="fa-solid fa-kit-medical"></i>
               </div>
-
-            </div>
-          </div>
-
-
-          <div class="row gy-4 services-grid">
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-heart-pulse"></i>
-                </div>
-
-                <h4>Khám Nội khoa</h4>
-
-                <p>
-                  Thăm khám và tư vấn các vấn đề sức khỏe thuộc nhóm bệnh lý nội khoa.
-                </p>
-
+              <div class="department-info">
+                  <h3>Khoa Ngoại</h3>
+                  <p>Xem chi tiết</p>
               </div>
-            </div>
+          </a>
 
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="550">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-clipboard2-pulse"></i>
-                </div>
-
-                <h4>Kiểm tra sức khỏe</h4>
-
-                <p>
-                  Hỗ trợ kiểm tra và đánh giá tình trạng sức khỏe của người bệnh.
-                </p>
-
+          <!-- Khoa Răng - Hàm - Mặt -->
+          <a href="departments.html#departments-tabs-dental" class="department-card">
+              <div class="department-icon">
+                  <i class="fa-solid fa-tooth"></i>
               </div>
-            </div>
-
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-activity"></i>
-                </div>
-
-                <h4>Theo dõi bệnh lý</h4>
-
-                <p>
-                  Theo dõi tình trạng sức khỏe và hỗ trợ người bệnh trong quá trình điều trị.
-                </p>
-
+              <div class="department-info">
+                  <h3>Khoa Răng - Hàm - Mặt</h3>
+                  <p>Xem chi tiết</p>
               </div>
-            </div>
+          </a>
 
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="650">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-person-check"></i>
-                </div>
-
-                <h4>Tư vấn sức khỏe</h4>
-
-                <p>
-                  Tư vấn các vấn đề sức khỏe và hướng dẫn người bệnh chăm sóc phù hợp.
-                </p>
-
+          <!-- Khoa Mắt -->
+          <a href="departments.html#departments-tabs-ophthalmology" class="department-card">
+              <div class="department-icon">
+                  <i class="fa-solid fa-eye"></i>
               </div>
-            </div>
-
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="700">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-file-medical"></i>
-                </div>
-
-                <h4>Tư vấn kết quả</h4>
-
-                <p>
-                  Hỗ trợ giải thích và tư vấn dựa trên thông tin khám và kết quả kiểm tra.
-                </p>
-
+              <div class="department-info">
+                  <h3>Khoa Mắt</h3>
+                  <p>Xem chi tiết</p>
               </div>
-            </div>
-
-
-            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="750">
-              <div class="service-item">
-
-                <div class="service-icon">
-                  <i class="bi bi-shield-check"></i>
-                </div>
-
-                <h4>Chăm sóc sức khỏe</h4>
-
-                <p>
-                  Hướng dẫn người bệnh duy trì và theo dõi sức khỏe trong quá trình chăm sóc.
-                </p>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-
-        <!-- Expert Care Section -->
-        <div class="expert-care-section" data-aos="fade-up" data-aos-delay="800">
-
-          <div class="row align-items-center">
-
-            <div class="col-lg-5" data-aos="fade-right" data-aos-delay="900">
-
-              <div class="expert-image">
-                <img src="assets/img/health/neurology-4.webp"
-                    alt="Bác sĩ Khoa Nội"
-                    class="img-fluid">
-              </div>
-
-            </div>
-
-
-            <div class="col-lg-7" data-aos="fade-left" data-aos-delay="900">
-
-              <div class="expert-content">
-
-                <h3>Đội ngũ bác sĩ Khoa Nội</h3>
-
-                <p class="lead">
-                  Khoa Nội có đội ngũ bác sĩ hỗ trợ khám, tư vấn và theo dõi
-                  sức khỏe cho người bệnh với quy trình phục vụ thuận tiện.
-                </p>
-
-
-                <div class="expertise-list">
-
-                  <div class="expertise-item">
-                    <i class="bi bi-check2"></i>
-                    <span>Khám và tư vấn các bệnh lý nội khoa</span>
-                  </div>
-
-                  <div class="expertise-item">
-                    <i class="bi bi-check2"></i>
-                    <span>Hỗ trợ kiểm tra và theo dõi sức khỏe</span>
-                  </div>
-
-                  <div class="expertise-item">
-                    <i class="bi bi-check2"></i>
-                    <span>Tư vấn phương hướng chăm sóc phù hợp</span>
-                  </div>
-
-                  <div class="expertise-item">
-                    <i class="bi bi-check2"></i>
-                    <span>Hỗ trợ đặt lịch khám trực tuyến</span>
-                  </div>
-
-                </div>
-
-
-                <div class="contact-info">
-
-                  <div class="contact-item">
-                    <i class="bi bi-telephone"></i>
-
-                    <div>
-                      <span class="contact-label">Liên hệ</span>
-                      <span class="contact-value">+84 000 000 0000</span>
-                    </div>
-                  </div>
-
-
-                  <div class="contact-item">
-                    <i class="bi bi-calendar-check"></i>
-
-                    <div>
-                      <span class="contact-label">Thời gian khám</span>
-                      <span class="contact-value">
-                        Thứ Hai - Thứ Sáu, 7:00 - 17:00
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-        </div>
+          </a>
 
       </div>
 
@@ -476,12 +233,12 @@
 
                 <div class="contact-item">
                   <i class="bi bi-telephone"></i>
-                  <span>+84 000 000 0000</span>
+                  <span>115</span>
                 </div>
 
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
-                  <span>info@benhvien.vn</span>
+                  <span>cliniccare.tdtu@gmail.com</span>
                 </div>
 
               </div>
@@ -505,7 +262,7 @@
                       <a href="index.html">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
-                      <a href="services.html">Dịch vụ</a>
+                      <a href="service-details.html">Dịch vụ</a>
                       <a href="contact.html">Liên hệ</a>
                     </nav>
 
@@ -519,11 +276,11 @@
                     <h6>Chuyên khoa</h6>
 
                     <nav class="footer-nav">
-                      <a href="services.html">Khoa Nội</a>
-                      <a href="services.html">Khoa Ngoại</a>
-                      <a href="services.html">Răng Hàm Mặt</a>
-                      <a href="services.html">Khoa Mắt</a>
-                      <a href="services.html">Khoa Tim mạch</a>
+                      <a href="departments.html#departments-tabs-neurology">Khoa Nội</a>
+                      <a href="departments.html#departments-tabs-surgery">Khoa Ngoại</a>
+                      <a href="departments.html#departments-tabs-dental">Răng Hàm Mặt</a>
+                      <a href="departments.html#departments-tabs-ophthalmology">Khoa Mắt</a>
+                      <a href="departments.html#departments-tabs-cardiology">Khoa Tim mạch</a>
                     </nav>
 
                   </div>
@@ -538,7 +295,6 @@
                     <nav class="footer-nav">
                       <a href="appointment.php">Đặt lịch khám</a>
                       <a href="doctors.php">Tìm bác sĩ</a>
-                      <a href="services.html">Khám chuyên khoa</a>
                       <a href="contact.html">Liên hệ</a>
                       <a href="login.php">Đăng nhập</a>
                     </nav>
@@ -587,7 +343,7 @@
 
                 <p>
                   © <span class="sitename">Bệnh viện</span>.
-                  All rights reserved.
+                  Mọi quyền được bảo lưu.
                 </p>
 
               </div>
@@ -597,9 +353,8 @@
 
               <div class="legal-links">
 
-                <a href="#!">Chính sách bảo mật</a>
-                <a href="#!">Điều khoản sử dụng</a>
-                <a href="#!">Chính sách</a>
+                <a href="privacy.html">Chính sách bảo mật</a>
+                <a href="terms.html">Điều khoản sử dụng</a>
 
               </div>
 
