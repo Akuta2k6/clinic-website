@@ -82,7 +82,7 @@ function clinicPortalShellStart(string $role, string $pageTitle, string $activeP
 
     echo '<div class="dashboard-shell">';
     echo '<aside class="dashboard-sidebar" id="dashboardSidebar">';
-    echo '<a class="sidebar-brand" href="' . $brandHref . '"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span></a>';
+    echo '<a class="sidebar-brand" href="' . $brandHref . '"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span></a>';
     echo '<div class="sidebar-caption">' . clinicPortalEscape($sectionLabel) . '</div><nav class="sidebar-nav">';
 
     foreach ($nav as $item) {

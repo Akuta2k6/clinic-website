@@ -166,13 +166,17 @@ $todayLabel = date('d/m/Y');
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
 </head>
 <body class="clinic-dashboard-page">
 <div class="dashboard-shell">
     <aside class="dashboard-sidebar" id="dashboardSidebar">
         <a class="sidebar-brand" href="dashboard.php">
             <span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>
-            <span><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span>
+            <span><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span>
         </a>
         <div class="sidebar-caption">CÔNG VIỆC</div>
         <nav class="sidebar-nav">
@@ -276,7 +280,7 @@ $todayLabel = date('d/m/Y');
                     <?php if (!$recentBookings): ?><div class="empty-state compact-empty"><i class="bi bi-inbox"></i><strong>Chưa có hoạt động</strong><span>Các lượt đặt lịch mới sẽ được cập nhật tại đây.</span></div><?php endif; ?>
                 </div>
             </section>
-            <footer class="dashboard-footer">© <?= date('Y') ?> ClinicCare · Hệ thống quản lý phòng khám <span>Cập nhật lúc <?= date('H:i') ?></span></footer>
+            <footer class="dashboard-footer">© <?= date('Y') ?> TDTU Clinic · Hệ thống quản lý phòng khám <span>Cập nhật lúc <?= date('H:i') ?></span></footer>
         </div>
     </main>
 </div>
