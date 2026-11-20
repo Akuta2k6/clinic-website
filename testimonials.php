@@ -126,9 +126,10 @@ $csrfToken = $_SESSION['review_csrf'];
   <meta name="keywords" content="">
 
   <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
-
+  <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
@@ -165,7 +166,7 @@ $csrfToken = $_SESSION['review_csrf'];
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:cliniccare.tdtu@gmail.com">cliniccare.tdtu@gmail.com</a></i>
+              href="mailto:tdtuclinic@gmail.com">tdtuclinic@gmail.com</a></i>
           <i class="bi bi-phone d-flex align-items-center ms-4"><span>115</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
@@ -180,7 +181,7 @@ $csrfToken = $_SESSION['review_csrf'];
     <div class="branding d-flex align-items-cente">
 
       <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="index.html" class="logo d-flex align-items-center">
+        <a href="index.php" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
           <img src="assets/img/logo.jpg" alt="">
           <h1 class="sitename">Bệnh viện đa khoa Tôn Đức Thắng</h1>
@@ -188,7 +189,7 @@ $csrfToken = $_SESSION['review_csrf'];
 
         <nav id="navmenu" class="navmenu">
           <ul>
-            <li><a href="index.html">Trang chủ</a></li>
+            <li><a href="index.php">Trang chủ</a></li>
             <li><a href="about.html">Giới thiệu</a></li>
             <li class="dropdown"><a href="department-details.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -404,7 +405,7 @@ $csrfToken = $_SESSION['review_csrf'];
           <div class="col-lg-5">
             <div class="brand-section">
 
-              <a href="index.html" class="logo d-flex align-items-center mb-4">
+              <a href="index.php" class="logo d-flex align-items-center mb-4">
                 <span class="sitename">Bệnh viện</span>
               </a>
 
@@ -427,7 +428,7 @@ $csrfToken = $_SESSION['review_csrf'];
 
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
-                  <span>cliniccare.tdtu@gmail.com</span>
+                  <span>tdtuclinic@gmail.com</span>
                 </div>
 
               </div>
@@ -448,7 +449,7 @@ $csrfToken = $_SESSION['review_csrf'];
                     <h6>Thông tin</h6>
 
                     <nav class="footer-nav">
-                      <a href="index.html">Trang chủ</a>
+                      <a href="index.php">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
                       <a href="service-details.html">Dịch vụ</a>

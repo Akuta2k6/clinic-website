@@ -190,11 +190,15 @@ $adminName = $_SESSION['user']['TenDangNhap'] ?? 'Quản trị viên';
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
 </head>
 <body class="clinic-dashboard-page">
 <div class="dashboard-shell">
     <aside class="dashboard-sidebar" id="dashboardSidebar">
-        <a class="sidebar-brand" href="dashboard.php"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span></a>
+        <a class="sidebar-brand" href="dashboard.php"><span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span><span><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span></a>
         <div class="sidebar-caption">QUẢN TRỊ HỆ THỐNG</div>
         <nav class="sidebar-nav">
             <a class="sidebar-link active" href="dashboard.php"><i class="bi bi-grid-1x2-fill"></i><span>Tổng quan</span></a>
@@ -290,7 +294,7 @@ $adminName = $_SESSION['user']['TenDangNhap'] ?? 'Quản trị viên';
                     </div>
                 </article>
             </section>
-            <footer class="dashboard-footer">© <?= date('Y') ?> ClinicCare · Hệ thống quản lý phòng khám <span>Cập nhật lúc <?= date('H:i') ?></span></footer>
+            <footer class="dashboard-footer">© <?= date('Y') ?> TDTU Clinic · Hệ thống quản lý phòng khám <span>Cập nhật lúc <?= date('H:i') ?></span></footer>
         </div>
     </main>
 </div>

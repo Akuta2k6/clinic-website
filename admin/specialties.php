@@ -86,6 +86,10 @@ $rows = $pdo->query('SELECT ck.*,COUNT(bs.MaBS) SoBacSi FROM ChuyenKhoa ck LEFT 
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
 </head>
 <body class="clinic-dashboard-page">
 <?php clinicPortalShellStart('Admin', 'Quản lý chuyên khoa', 'specialties'); ?>

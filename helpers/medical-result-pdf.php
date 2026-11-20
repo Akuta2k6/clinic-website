@@ -119,7 +119,7 @@ function taoPdfKetQuaKham(PDO $pdo, int $maDatLich, string $maBS): string
         </style>
     </head>
     <body>
-        <h1>PHÒNG KHÁM CLINIC</h1>
+        <h1>BỆNH VIỆN ĐA KHOA TDTU</h1>
         <div class="subtitle">HỒ SƠ KHÁM BỆNH VÀ ĐƠN THUỐC</div>
         <table class="meta">
             <tr><td class="label">Mã tra cứu</td><td><strong>' . $e($record['MaTraCuu']) . '</strong></td><td class="label">Ngày khám</td><td>' . $date($record['NgayKham']) . '</td></tr>
@@ -145,7 +145,7 @@ function taoPdfKetQuaKham(PDO $pdo, int $maDatLich, string $maBS): string
         <table class="signature">
             <tr><td><strong>BỆNH NHÂN</strong><div class="signature-space"></div><span class="muted">(Ký và ghi rõ họ tên)</span></td><td><strong>BÁC SĨ KHÁM</strong><div class="signature-space"></div><strong>' . $e($doctorName) . '</strong></td></tr>
         </table>
-        <div class="footer">Tài liệu được tạo tự động từ hệ thống quản lý phòng khám.</div>
+        <div class="footer">Tài liệu được tạo tự động từ hệ thống quản lý bệnh viện.</div>
     </body>
     </html>';
 

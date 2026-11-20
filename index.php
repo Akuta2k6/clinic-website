@@ -1,16 +1,57 @@
+
+<?php
+require_once __DIR__ . '/config/database.php';
+
+$stmt = $pdo->query("
+    SELECT
+        COUNT(*) AS total_reviews,
+        COALESCE(AVG(SoSao), 0) AS average_rating
+    FROM DanhGia
+    WHERE TrangThai = 'HienThi'
+");
+
+$ratingStats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$reviewCount = (int) $ratingStats['total_reviews'];
+$ratingAverage = (float) $ratingStats['average_rating'];
+$ratingRounded = round($ratingAverage * 2) / 2;
+$ratingText = number_format($ratingAverage, 1, '.', '');
+$reviewCountText = number_format($reviewCount, 0, ',', '.');
+
+function renderHomeRatingStars(float $rating): string
+{
+    $rating = round($rating * 2) / 2;
+    $stars = '';
+
+    for ($i = 1; $i <= 5; $i++) {
+        if ($rating >= $i) {
+            $stars .= '<i class="bi bi-star-fill"></i>';
+        } elseif ($rating >= $i - 0.5) {
+            $stars .= '<i class="bi bi-star-half"></i>';
+        } else {
+            $stars .= '<i class="bi bi-star"></i>';
+        }
+    }
+
+    return $stars;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Giao diện trang chủ</title>
+  <title>Bệnh viện đa khoa Tôn Đức Thắng</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
 
   <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -29,14 +70,6 @@
 
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
-
-  <!-- =======================================================
-- Template Name: Clinic
-- Template URL: https://bootstrapmade.com/clinic-bootstrap-template/
-- Updated: Jul 23 2025 with Bootstrap v5.3.7
-- Author: BootstrapMade.com
-- License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body class="index-page">
@@ -47,7 +80,7 @@
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
           <i class="bi bi-envelope d-flex align-items-center"><a
-              href="mailto:cliniccare.tdtu@gmail.com">contact@example.com</a></i>
+              href="mailto:tdtuclinic@gmail.com">tdtuclinic@gmail.com</a></i>
           <i class="bi bi-phone d-flex align-items-center ms-4"><span>115</span></i>
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
@@ -62,7 +95,7 @@
     <div class="branding d-flex align-items-cente">
 
       <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="index.html" class="logo d-flex align-items-center">
+        <a href="index.php" class="logo d-flex align-items-center">
           <!-- Uncomment the line below if you also wish to use an image logo -->
           <img src="assets/img/logo.jpg" alt=""> 
           <h1 class="sitename">Bệnh viện đa khoa Tôn Đức Thắng</h1>
@@ -70,7 +103,7 @@
 
         <nav id="navmenu" class="navmenu">
           <ul>
-            <li><a href="index.html" class="active">Trang chủ</a></li>
+            <li><a href="index.php" class="active">Trang chủ</a></li>
             <li><a href="about.html">Giới thiệu</a></li>
             <li class="dropdown"><a href="department-details.html"><span>Khoa</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -128,16 +161,14 @@
                   <i class="bi bi-clock"></i>
                   <span>Cấp cứu 24/7</span>
                 </div>
+
                 <div class="badge-item">
-                  <span>4.4</span>
-                  <span class="rating-stars">
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill partial-star"></i>
-                  </span>
+                    <span><?= $ratingText ?></span>
+                    <span class="rating-stars">
+                        <?= renderHomeRatingStars($ratingAverage) ?>
+                    </span>
                 </div>
+
               </div>
 
               <h1 data-aos="fade-right" data-aos-delay="300">
@@ -190,29 +221,21 @@
             <div class="hero-visual" data-aos="fade-left" data-aos-delay="400">
               <div class="main-image">
                 <img src="assets/img/health/HinhAnhBenNgoai.jpg" alt="Modern Healthcare Facility" class="img-fluid">
-                <div class="floating-card appointment-card">
-                  <div class="card-icon">
-                    <i class="bi bi-calendar-check"></i>
-                  </div>
-                  <div class="card-content">
-                    <h6>Next Available</h6>
-                    <p>Today 2:30 PM</p>
-                    <small>Dr. Sarah Johnson</small>
-                  </div>
-                </div>
+                
                 <div class="floating-card rating-card">
-                  <div class="card-content">
-                    <div class="rating-stars">
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill partial-star"></i>
+                    <div class="card-content">
+                        <div class="rating-stars">
+                            <?= renderHomeRatingStars($ratingAverage) ?>
+                        </div>
+                        <h6><?= $ratingText ?>/5</h6>
+                        <small>
+                            <?= $reviewCount > 0
+                                ? $reviewCountText . ' lượt đánh giá'
+                                : 'Chưa có đánh giá' ?>
+                        </small>
                     </div>
-                    <h6>4.4/5</h6>
-                    <small>1,234 Reviews</small>
-                  </div>
                 </div>
+
               </div>
               <div class="background-elements">
                 <div class="element element-1"></div>
@@ -909,7 +932,7 @@
           <div class="col-lg-5">
             <div class="brand-section">
 
-              <a href="index.html" class="logo d-flex align-items-center mb-4">
+              <a href="index.php" class="logo d-flex align-items-center mb-4">
                 <span class="sitename">Bệnh viện</span>
               </a>
 
@@ -932,7 +955,7 @@
 
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
-                  <span>cliniccare.tdtu@gmail.com</span>
+                  <span>tdtuclinic@gmail.com</span>
                 </div>
 
               </div>
@@ -953,7 +976,7 @@
                     <h6>Thông tin</h6>
 
                     <nav class="footer-nav">
-                      <a href="index.html">Trang chủ</a>
+                      <a href="index.php">Trang chủ</a>
                       <a href="about.html">Giới thiệu</a>
                       <a href="doctors.php">Bác sĩ</a>
                       <a href="service-details.html">Dịch vụ</a>

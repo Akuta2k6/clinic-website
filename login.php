@@ -13,20 +13,24 @@ $error = $_GET['error'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#12345a">
-    <title>Đăng nhập | ClinicCare</title>
+    <title>Đăng nhập | TDTU Clinic</title>
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/public-pages.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
 </head>
 <body class="clinic-public-body">
 <header class="clinic-header">
     <div class="clinic-header-inner">
-        <a class="clinic-brand" href="index.html">
+        <a class="clinic-brand" href="index.php">
             <span class="clinic-brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>
-            <span class="clinic-brand-copy"><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span>
+            <span class="clinic-brand-copy"><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span>
         </a>
         <nav class="clinic-nav" aria-label="Điều hướng chính">
-            <a href="index.html"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
+            <a href="index.php"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
             <a href="appointment.php"><i class="bi bi-calendar2-plus"></i><span>Đặt lịch khám</span></a>
             <a href="patient/lookup.php"><i class="bi bi-search"></i><span>Tra cứu lịch</span></a>
         </nav>
@@ -88,14 +92,14 @@ $error = $_GET['error'] ?? '';
                 </form>
                 <div class="clinic-login-divider"><span></span><i class="bi bi-shield-lock"></i><span></span></div>
                 <p class="clinic-login-security">Thông tin đăng nhập chỉ dành cho nhân viên được cấp tài khoản.</p>
-                <a class="clinic-back-link" href="index.html"><i class="bi bi-arrow-left"></i> Quay về trang chủ</a>
+                <a class="clinic-back-link" href="index.php"><i class="bi bi-arrow-left"></i> Quay về trang chủ</a>
             </div>
             <div class="clinic-login-help"><i class="bi bi-info-circle"></i> Nếu không thể đăng nhập, vui lòng liên hệ quản trị viên.</div>
         </section>
     </div>
 </main>
 
-<footer class="clinic-footer"><span>© <?= date('Y') ?> ClinicCare</span><span>Chăm sóc sức khỏe bằng sự tận tâm</span></footer>
+<footer class="clinic-footer"><span>© <?= date('Y') ?> TDTU Clinic</span><span>Chăm sóc sức khỏe bằng sự tận tâm</span></footer>
 <script>
 const passwordInput = document.getElementById('MatKhau');
 const passwordToggle = document.querySelector('[data-password-toggle]');

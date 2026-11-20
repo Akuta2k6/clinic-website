@@ -4,20 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#12345a">
-    <title>Đăng ký xét nghiệm | ClinicCare</title>
+    <title>Đăng ký xét nghiệm</title>
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/public-pages.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
 </head>
 <body class="clinic-public-body">
 <header class="clinic-header">
     <div class="clinic-header-inner">
-        <a class="clinic-brand" href="index.html">
+        <a class="clinic-brand" href="index.php">
             <span class="clinic-brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>
-            <span class="clinic-brand-copy"><strong>ClinicCare</strong><small>Hệ thống quản lý phòng khám</small></span>
+            <span class="clinic-brand-copy"><strong>TDTU Clinic</strong><small>Hệ thống quản lý phòng khám</small></span>
         </a>
         <nav class="clinic-nav" aria-label="Điều hướng chính">
-            <a href="index.html"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
+            <a href="index.php"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
             <a href="appointment.php"><i class="bi bi-calendar2-plus"></i><span>Đặt lịch khám</span></a>
             <a class="active" href="testing.php"><i class="bi bi-eyedropper"></i><span>Xét nghiệm</span></a>
             <a href="vaccination.php"><i class="bi bi-shield-plus"></i><span>Tiêm ngừa</span></a>
@@ -93,6 +97,6 @@
         </aside>
     </div>
 </main>
-<footer class="clinic-footer"><span>© ClinicCare</span><span>Chăm sóc sức khỏe bằng sự tận tâm</span></footer>
+<footer class="clinic-footer"><span>© TDTU Clinic</span><span>Chăm sóc sức khỏe bằng sự tận tâm</span></footer>
 </body>
 </html>
