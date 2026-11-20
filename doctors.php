@@ -3,10 +3,16 @@ require_once __DIR__ . '/config/database.php';
 
 $chuyenKhoa = $pdo->query("SELECT MaCK, TenChuyenKhoa FROM ChuyenKhoa WHERE TrangThai = 1 ORDER BY MaCK, TenChuyenKhoa")->fetchAll(PDO::FETCH_ASSOC);
 $bacSi = $pdo->query("SELECT bs.MaBS, bs.MaCK, bs.HoTen, bs.HocVi, bs.ChuyenMon, bs.KinhNghiem, bs.Email, bs.SoDienThoai, bs.AnhDaiDien, ck.TenChuyenKhoa FROM BacSi bs INNER JOIN ChuyenKhoa ck ON bs.MaCK = ck.MaCK WHERE bs.TrangThai = 1 AND ck.TrangThai = 1 ORDER BY ck.MaCK, bs.HoTen")->fetchAll(PDO::FETCH_ASSOC);
-function e(?string $value): string { return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'); }
+
+function e(?string $value): string {
+    return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+}
+
 function anhBacSi(?string $path): string {
     $path = trim($path ?? '');
-    if ($path !== '' && preg_match('~^assets/uploads/doctors/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)$~i', $path) && is_file(__DIR__ . '/' . $path)) return $path;
+    if ($path !== '' && preg_match('~^assets/uploads/doctors/[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp)$~i', $path) && is_file(__DIR__ . '/' . $path)) {
+        return $path;
+    }
     return 'assets/img/health/doctor.jpg';
 }
 ?>
@@ -25,6 +31,7 @@ function anhBacSi(?string $path): string {
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
@@ -175,6 +182,15 @@ function anhBacSi(?string $path): string {
           .specialty-filter-btn { background:#fff; color:var(--default-color); border:1px solid #dbe4ea; border-radius:999px; padding:9px 20px; font-weight:600; cursor:pointer; transition:background .2s,color .2s,border-color .2s; }
           .specialty-filter-btn:hover, .specialty-filter-btn.active { color:var(--contrast-color, #fff); background:var(--accent-color, #1977cc); border-color:var(--accent-color, #1977cc); }
           .doctor-filter-hidden { display:none !important; }
+          .doctors .doctor-meta { display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-bottom:16px; }
+          .doctors .doctor-meta .doctor-contact-item { display:flex; align-items:center; gap:8px; font-size:0.92rem; color:var(--default-color); }
+          .doctors .doctor-meta .doctor-contact-item i { color:var(--accent-color, #1977cc); }
+          .doctors .doctor-meta .doctor-contact-item a { color:inherit; text-decoration:none; transition:color .2s; word-break:break-all; cursor:pointer; }
+          .doctors .doctor-meta .doctor-contact-item a:hover { color:var(--accent-color, #1977cc); text-decoration:underline; }
+          .doctors .doctor-actions { display:flex; align-items:center; gap:8px; margin-top:auto; }
+          .doctors .doctor-actions .btn-appointment { flex:1; margin-top:0; text-align:center; }
+          .doctors .doctor-actions .btn-contact-quick { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:8px; border:1px solid var(--accent-color, #1977cc); color:var(--accent-color, #1977cc); background:#fff; transition:all .2s; flex-shrink:0; cursor:pointer; }
+          .doctors .doctor-actions .btn-contact-quick:hover { background:var(--accent-color, #1977cc); color:#fff; }
         </style>
         <div class="specialty-filters" role="group" aria-label="Lọc bác sĩ theo chuyên khoa">
           <button type="button" class="specialty-filter-btn active" data-filter="all" aria-pressed="true">Tất cả</button>
@@ -188,25 +204,100 @@ function anhBacSi(?string $path): string {
             <div class="col-12 text-center"><p>Hiện chưa có bác sĩ nào được công bố.</p></div>
           <?php endif; ?>
           <?php foreach ($bacSi as $bs): ?>
+            <?php
+              $rawPhone = trim($bs['SoDienThoai'] ?? '');
+              $cleanPhone = $rawPhone !== '' ? preg_replace('/[^0-9+]/', '', $rawPhone) : '';
+              $email = trim($bs['Email'] ?? '');
+            ?>
             <div class="col-lg-4 col-md-6 doctor-filter-item" data-specialty="<?= (int)$bs['MaCK'] ?>">
-              <div class="doctor-card">
+              <div class="doctor-card h-100 d-flex flex-column">
                 <div class="doctor-image">
                   <img src="<?= e(anhBacSi($bs['AnhDaiDien'])) ?>" alt="Ảnh bác sĩ <?= e($bs['HoTen']) ?>" class="img-fluid">
                   <div class="doctor-overlay">
                     <div class="social-links">
-                      <?php if (!empty($bs['Email'])): ?><a href="mailto:<?= e($bs['Email']) ?>" aria-label="Email bác sĩ"><i class="bi bi-envelope"></i></a><?php endif; ?>
-                      <?php if (!empty($bs['SoDienThoai'])): ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $bs['SoDienThoai'])) ?>" aria-label="Gọi bác sĩ"><i class="bi bi-phone"></i></a><?php endif; ?>
+                      <?php if ($email !== ''): ?>
+                        <a href="mailto:<?= e($email) ?>"
+                           class="js-doctor-contact"
+                           data-name="BS. <?= e($bs['HoTen']) ?>"
+                           data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                           data-phone="<?= e($rawPhone) ?>"
+                           data-clean-phone="<?= e($cleanPhone) ?>"
+                           data-email="<?= e($email) ?>"
+                           aria-label="Email bác sĩ <?= e($bs['HoTen']) ?>"><i class="bi bi-envelope"></i></a>
+                      <?php endif; ?>
+                      <?php if ($cleanPhone !== ''): ?>
+                        <a href="tel:<?= e($cleanPhone) ?>"
+                           class="js-doctor-contact"
+                           data-name="BS. <?= e($bs['HoTen']) ?>"
+                           data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                           data-phone="<?= e($rawPhone) ?>"
+                           data-clean-phone="<?= e($cleanPhone) ?>"
+                           data-email="<?= e($email) ?>"
+                           aria-label="Gọi bác sĩ <?= e($bs['HoTen']) ?>"><i class="bi bi-telephone"></i></a>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>
-                <div class="doctor-content">
+                <div class="doctor-content d-flex flex-column flex-grow-1">
                   <h4>BS. <?= e($bs['HoTen']) ?></h4>
                   <span class="specialty"><?= e($bs['HocVi'] ?: 'Bác sĩ') ?></span>
                   <p><?= e($bs['ChuyenMon'] ?: 'Khám và tư vấn sức khỏe thuộc ' . $bs['TenChuyenKhoa'] . '.') ?></p>
                   <div class="doctor-meta">
                     <div class="department"><i class="bi bi-building"></i><span><?= e($bs['TenChuyenKhoa']) ?></span></div>
+                    <?php if ($cleanPhone !== ''): ?>
+                      <div class="doctor-contact-item">
+                        <i class="bi bi-telephone"></i>
+                        <a href="tel:<?= e($cleanPhone) ?>"
+                           class="js-doctor-contact"
+                           data-name="BS. <?= e($bs['HoTen']) ?>"
+                           data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                           data-phone="<?= e($rawPhone) ?>"
+                           data-clean-phone="<?= e($cleanPhone) ?>"
+                           data-email="<?= e($email) ?>"><?= e($rawPhone) ?></a>
+                      </div>
+                    <?php endif; ?>
+                    <?php if ($email !== ''): ?>
+                      <div class="doctor-contact-item">
+                        <i class="bi bi-envelope"></i>
+                        <a href="mailto:<?= e($email) ?>"
+                           class="js-doctor-contact"
+                           data-name="BS. <?= e($bs['HoTen']) ?>"
+                           data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                           data-phone="<?= e($rawPhone) ?>"
+                           data-clean-phone="<?= e($cleanPhone) ?>"
+                           data-email="<?= e($email) ?>"><?= e($email) ?></a>
+                      </div>
+                    <?php endif; ?>
                   </div>
-                  <a href="appointment.php?MaBS=<?= rawurlencode($bs['MaBS']) ?>&amp;MaCK=<?= (int)$bs['MaCK'] ?>" class="btn-appointment">Đặt lịch khám</a>
+                  <div class="doctor-actions">
+                    <a href="appointment.php?MaBS=<?= rawurlencode($bs['MaBS']) ?>&amp;MaCK=<?= (int)$bs['MaCK'] ?>" class="btn-appointment">Đặt lịch khám</a>
+                    <?php if ($cleanPhone !== ''): ?>
+                      <a href="tel:<?= e($cleanPhone) ?>"
+                         class="btn-contact-quick js-doctor-contact"
+                         data-name="BS. <?= e($bs['HoTen']) ?>"
+                         data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                         data-phone="<?= e($rawPhone) ?>"
+                         data-clean-phone="<?= e($cleanPhone) ?>"
+                         data-email="<?= e($email) ?>"
+                         title="Liên hệ SĐT / Zalo: <?= e($rawPhone) ?>"
+                         aria-label="Gọi hoặc nhắn Zalo cho bác sĩ <?= e($bs['HoTen']) ?>">
+                        <i class="bi bi-telephone-fill"></i>
+                      </a>
+                    <?php endif; ?>
+                    <?php if ($email !== ''): ?>
+                      <a href="mailto:<?= e($email) ?>"
+                         class="btn-contact-quick js-doctor-contact"
+                         data-name="BS. <?= e($bs['HoTen']) ?>"
+                         data-specialty="<?= e($bs['TenChuyenKhoa']) ?>"
+                         data-phone="<?= e($rawPhone) ?>"
+                         data-clean-phone="<?= e($cleanPhone) ?>"
+                         data-email="<?= e($email) ?>"
+                         title="Gửi email: <?= e($email) ?>"
+                         aria-label="Gửi email cho bác sĩ <?= e($bs['HoTen']) ?>">
+                        <i class="bi bi-envelope-fill"></i>
+                      </a>
+                    <?php endif; ?>
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,6 +311,58 @@ function anhBacSi(?string $path): string {
     <!-- /Doctors Section -->
 
   </main>
+
+  <!-- Modal Liên hệ Bác sĩ -->
+  <div class="modal fade" id="doctorContactModal" tabindex="-1" aria-labelledby="doctorContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <div>
+            <h5 class="modal-title mb-0 text-white" id="doctorContactModalLabel">Liên hệ bác sĩ</h5>
+            <small id="modalDoctorSpecialty" class="opacity-75"></small>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="modalPhoneSection" class="mb-3 pb-3 border-bottom">
+            <label class="form-label text-muted small fw-bold mb-1">SỐ ĐIỆN THOẠI / ZALO</label>
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+              <span id="modalDoctorPhone" class="fs-5 fw-semibold text-dark"></span>
+              <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary btn-sm js-copy-btn" data-copy-target="phone">
+                  <i class="bi bi-clipboard"></i> Sao chép
+                </button>
+                <a id="modalZaloLink" href="#" target="_blank" rel="noopener" class="btn btn-info text-white btn-sm">
+                  <i class="bi bi-chat-dots-fill"></i> Mở Zalo
+                </a>
+                <a id="modalTelLink" href="#" class="btn btn-primary btn-sm">
+                  <i class="bi bi-telephone-fill"></i> Gọi điện
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div id="modalEmailSection">
+            <label class="form-label text-muted small fw-bold mb-1">EMAIL LIÊN HỆ</label>
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+              <span id="modalDoctorEmail" class="fs-6 fw-semibold text-dark text-break"></span>
+              <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary btn-sm js-copy-btn" data-copy-target="email">
+                  <i class="bi bi-clipboard"></i> Sao chép
+                </button>
+                <a id="modalGmailLink" href="#" target="_blank" rel="noopener" class="btn btn-danger btn-sm">
+                  <i class="bi bi-google"></i> Gmail Web
+                </a>
+                <a id="modalMailtoLink" href="#" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-envelope-fill"></i> App Mail
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer id="footer" class="footer-16 footer position-relative">
 
@@ -407,6 +550,7 @@ function anhBacSi(?string $path): string {
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Lọc bác sĩ theo chuyên khoa
       const buttons = document.querySelectorAll('.specialty-filter-btn');
       const doctors = document.querySelectorAll('#doctor-list .doctor-filter-item');
       const empty = document.getElementById('doctor-filter-empty');
@@ -427,6 +571,79 @@ function anhBacSi(?string $path): string {
           empty.hidden = visible !== 0;
         });
       });
+
+      // Xử lý Modal liên hệ bác sĩ (Zalo, Gọi điện, Gmail Web, App Mail, Sao chép)
+      const contactModalEl = document.getElementById('doctorContactModal');
+      if (contactModalEl && typeof bootstrap !== 'undefined') {
+        const contactModal = new bootstrap.Modal(contactModalEl);
+        const titleEl = document.getElementById('doctorContactModalLabel');
+        const specialtyEl = document.getElementById('modalDoctorSpecialty');
+        const phoneSection = document.getElementById('modalPhoneSection');
+        const phoneTextEl = document.getElementById('modalDoctorPhone');
+        const zaloLinkEl = document.getElementById('modalZaloLink');
+        const telLinkEl = document.getElementById('modalTelLink');
+        const emailSection = document.getElementById('modalEmailSection');
+        const emailTextEl = document.getElementById('modalDoctorEmail');
+        const gmailLinkEl = document.getElementById('modalGmailLink');
+        const mailtoLinkEl = document.getElementById('modalMailtoLink');
+
+        let currentPhone = '';
+        let currentEmail = '';
+
+        document.querySelectorAll('.js-doctor-contact').forEach(function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault();
+            const name = el.dataset.name || 'Bác sĩ';
+            const specialty = el.dataset.specialty || '';
+            currentPhone = el.dataset.phone || '';
+            const cleanPhone = el.dataset.cleanPhone || '';
+            currentEmail = el.dataset.email || '';
+
+            titleEl.textContent = name;
+            specialtyEl.textContent = specialty;
+
+            if (currentPhone) {
+              phoneSection.style.display = '';
+              phoneTextEl.textContent = currentPhone;
+              telLinkEl.href = 'tel:' + cleanPhone;
+              const zaloPhone = cleanPhone.replace(/^\+/, '');
+              zaloLinkEl.href = 'https://zalo.me/' + zaloPhone;
+            } else {
+              phoneSection.style.display = 'none';
+            }
+
+            if (currentEmail) {
+              emailSection.style.display = '';
+              emailTextEl.textContent = currentEmail;
+              mailtoLinkEl.href = 'mailto:' + currentEmail;
+              const subject = encodeURIComponent('Tư vấn khám bệnh - ' + name);
+              gmailLinkEl.href = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(currentEmail) + '&su=' + subject;
+            } else {
+              emailSection.style.display = 'none';
+            }
+
+            contactModal.show();
+          });
+        });
+
+        document.querySelectorAll('.js-copy-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const target = btn.dataset.copyTarget;
+            const textToCopy = target === 'phone' ? currentPhone : currentEmail;
+            if (!textToCopy) return;
+
+            navigator.clipboard.writeText(textToCopy).then(function () {
+              const originalHtml = btn.innerHTML;
+              btn.innerHTML = '<i class="bi bi-check2"></i> Đã sao chép';
+              btn.classList.replace('btn-outline-secondary', 'btn-success');
+              setTimeout(function () {
+                btn.innerHTML = originalHtml;
+                btn.classList.replace('btn-success', 'btn-outline-secondary');
+              }, 1800);
+            });
+          });
+        });
+      }
     });
   </script>
 </body>
