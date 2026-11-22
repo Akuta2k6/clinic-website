@@ -1,18 +1,15 @@
 -- =========================================================
--- QUAN LY KHAM BENH - DATABASE TONG HOP THEO PHIEN BAN HIEN TAI (13 BANG)
+-- QUAN LY KHAM BENH - DATABASE TONG HOP THEO PHIEN BAN HIEN TAI (14 BANG)
 -- Tuong thich voi MariaDB 10.4.x (XAMPP).
 -- Import mot lan de tao cau truc va du lieu khoi tao.
 -- Khong DROP DATABASE va khong xoa cac bang/ban ghi dang co.
--- Ngoai tru cot TrieuChung cu (neu ton tai), vi phien ban hien tai da bo cot nay.
 -- =========================================================
--- Luu y: neu DatLich dang co cot TrieuChung, cot nay se bi xoa
 -- de dong bo voi phien ban hien tai. Hay sao luu truoc khi import.
 -- =========================================================
 
 -- =========================================================
 -- DATABASE: QuanLyKhamBenh
 -- Dùng cho project clinic-website (PHP + MySQL/XAMPP)
--- Phiên bản MaBS theo chuyên khoa: N001, NG001, RHM001, M001, TM001
 -- =========================================================
 
 SET NAMES utf8mb4;
@@ -326,6 +323,45 @@ DEALLOCATE PREPARE drop_trieu_chung_stmt;
 -- INSERT IGNORE giup khong tao trung du lieu khi import lai.
 -- =========================================================
 
+-- =========================================================
+-- 12. LIEN HE VA LICH SU PHAN HOI
+-- =========================================================
+CREATE TABLE IF NOT EXISTS LienHe (
+    MaLienHe INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    HoTen VARCHAR(100) NOT NULL,
+    Email VARCHAR(150) NOT NULL,
+    SoDienThoai VARCHAR(20) NULL,
+    ChuDe VARCHAR(150) NOT NULL,
+    NoiDung TEXT NOT NULL,
+    NgayGui DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TrangThai ENUM('Moi', 'DangXuLy', 'DaPhanHoi', 'DaDong') NOT NULL DEFAULT 'Moi',
+    TrangThaiThongBao ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    TrangThaiXacNhan ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    NgayCapNhat DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_lienhe_trangthai_ngay (TrangThai, NgayGui),
+    INDEX idx_lienhe_email (Email),
+    INDEX idx_lienhe_ngaygui (NgayGui)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS LienHePhanHoi (
+    MaPhanHoi INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    MaLienHe INT UNSIGNED NOT NULL,
+    MaTK INT NULL,
+    TenNguoiPhanHoi VARCHAR(100) NOT NULL,
+    NoiDung TEXT NOT NULL,
+    NgayPhanHoi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    TrangThaiEmail ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
+    ThongBaoLoi VARCHAR(500) NULL,
+    CONSTRAINT FK_LienHePhanHoi_LienHe
+        FOREIGN KEY (MaLienHe) REFERENCES LienHe(MaLienHe)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_LienHePhanHoi_TaiKhoan
+        FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    INDEX idx_lienhephanhoi_lienhe_ngay (MaLienHe, NgayPhanHoi)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 INSERT IGNORE INTO ChuyenKhoa
     (MaCK, MaVietTat, TenChuyenKhoa, MoTa, TrangThai)
 VALUES
@@ -497,40 +533,3 @@ UNION ALL SELECT 'HoSoKham', COUNT(*) FROM HoSoKham
 UNION ALL SELECT 'DonThuoc', COUNT(*) FROM DonThuoc
 UNION ALL SELECT 'ChiTietDonThuoc', COUNT(*) FROM ChiTietDonThuoc;
 
--- =========================================================
--- 10. LIEN HE VA LICH SU PHAN HOI
--- =========================================================
-CREATE TABLE IF NOT EXISTS LienHe (
-    MaLienHe INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    HoTen VARCHAR(100) NOT NULL,
-    Email VARCHAR(150) NOT NULL,
-    SoDienThoai VARCHAR(20) NULL,
-    ChuDe VARCHAR(150) NOT NULL,
-    NoiDung TEXT NOT NULL,
-    NgayGui DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    TrangThai ENUM('Moi', 'DangXuLy', 'DaPhanHoi', 'DaDong') NOT NULL DEFAULT 'Moi',
-    TrangThaiThongBao ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
-    TrangThaiXacNhan ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
-    NgayCapNhat DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_lienhe_trangthai_ngay (TrangThai, NgayGui),
-    INDEX idx_lienhe_email (Email),
-    INDEX idx_lienhe_ngaygui (NgayGui)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS LienHePhanHoi (
-    MaPhanHoi INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    MaLienHe INT UNSIGNED NOT NULL,
-    MaTK INT NULL,
-    TenNguoiPhanHoi VARCHAR(100) NOT NULL,
-    NoiDung TEXT NOT NULL,
-    NgayPhanHoi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    TrangThaiEmail ENUM('ChoGui', 'DaGui', 'ThatBai') NOT NULL DEFAULT 'ChoGui',
-    ThongBaoLoi VARCHAR(500) NULL,
-    CONSTRAINT FK_LienHePhanHoi_LienHe
-        FOREIGN KEY (MaLienHe) REFERENCES LienHe(MaLienHe)
-        ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT FK_LienHePhanHoi_TaiKhoan
-        FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK)
-        ON UPDATE CASCADE ON DELETE SET NULL,
-    INDEX idx_lienhephanhoi_lienhe_ngay (MaLienHe, NgayPhanHoi)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
