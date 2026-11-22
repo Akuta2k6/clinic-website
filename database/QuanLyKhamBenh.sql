@@ -325,6 +325,7 @@ DEALLOCATE PREPARE drop_trieu_chung_stmt;
 
 -- =========================================================
 -- 12. LIEN HE VA LICH SU PHAN HOI
+
 -- =========================================================
 CREATE TABLE IF NOT EXISTS LienHe (
     MaLienHe INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

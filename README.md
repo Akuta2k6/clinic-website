@@ -248,3 +248,4 @@ Các địa chỉ thường dùng:
 
 Dự án được xây dựng nhằm thực hành phát triển ứng dụng web PHP kết nối MySQL, xử lý nghiệp vụ đặt lịch khám, quản lý lịch làm việc, hồ sơ khám bệnh, đơn thuốc và phân quyền người dùng.
 
+
