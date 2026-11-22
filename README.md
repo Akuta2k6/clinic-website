@@ -145,7 +145,7 @@ Các địa chỉ thường dùng:
 - Đánh giá: `/testimonials.php`
 - Đăng nhập: `/login.php`
 
-## bonus 6. Các tài khoản admin và bác sĩ
+## Các tài khoản admin và bác sĩ
 
 ### ADMIN
 
@@ -154,7 +154,7 @@ Mật khẩu:      admin123
 
 ### Bác sĩ:
 
-Tên đăng nhập: bs.tenbacsi (có thể lấy các tên bác sĩ trong doctor.php. Ví dụ:bs.nguyenminhanh)
+Tên đăng nhập: bs.tenbacsi (có thể xem các tên bác sĩ trong doctor.php. Ví dụ:bs.nguyenminhanh)
 Mật khẩu:      doctor123
 
 ## 4. Kiểm tra sau khi cài đặt
