@@ -1,5 +1,3 @@
-Website hỗ trợ bệnh nhân tìm hiểu thông tin bệnh viện, đặt lịch khám trực tuyến và tra cứu lịch hẹn; đồng thời cung cấp cổng làm việc riêng cho bác sĩ và quản trị viên.
-
 ## 1. Chức năng chính
 
 ### Dành cho bệnh nhân và khách truy cập
@@ -39,63 +37,14 @@ Website hỗ trợ bệnh nhân tìm hiểu thông tin bệnh viện, đặt l�
 - Theo dõi danh sách lịch hẹn.
 - Phản hồi yêu cầu hỗ trợ của bệnh nhân, khách hàng.
 
-## 2. Công nghệ sử dụng
-
-| Thành phần | Công nghệ |
-|---|---|
-| Giao diện | HTML, CSS, JavaScript |
-| Giao diện và thành phần dựng sẵn | Bootstrap 5, Bootstrap Icons |
-| Xử lý phía máy chủ | PHP |
-| Cơ sở dữ liệu | MySQL |
-| Kết nối cơ sở dữ liệu | PDO |
-| Giao tiếp bất đồng bộ | JavaScript Fetch API, PHP JSON API |
-| Gửi email | PHPMailer, SMTP |
-| Tạo PDF | mPDF |
-| Môi trường phát triển đề xuất | XAMPP, Composer |
-
-## 3. Kiến trúc tổng thể
-
-Dự án được tổ chức theo mô hình 3 lớp:
-
-1. **Presentation Layer:** Trình duyệt hiển thị giao diện HTML/CSS/JavaScript và Bootstrap; Fetch API gửi yêu cầu lấy dữ liệu động.
-2. **Application Layer:** Apache và PHP tiếp nhận yêu cầu, kiểm tra dữ liệu, xử lý nghiệp vụ, xác thực vai trò và trao đổi dữ liệu với cơ sở dữ liệu.
-3. **Data Layer:** MySQL lưu trữ tài khoản, bệnh nhân, bác sĩ, lịch khám, hồ sơ khám, đơn thuốc và các dữ liệu liên quan.
-
-Ví dụ: khi bệnh nhân chọn chuyên khoa, JavaScript gọi `api/get-doctors.php` để lấy danh sách bác sĩ phù hợp. Khi chọn bác sĩ và ngày khám, trình duyệt gọi `api/get-schedules.php` để lấy các khung giờ còn nhận lịch.
-
-## 4. Cấu trúc thư mục
-
-```text
-clinic-website/
-├── actions/        # Xử lý đăng nhập và đặt lịch
-├── admin/          # Các trang quản trị viên
-├── api/            # API trả dữ liệu JSON
-├── assets/         # CSS, JavaScript, hình ảnh và tài nguyên giao diện
-├── auth/           # Kiểm tra đăng nhập và phân quyền
-├── config/         # Cấu hình cơ sở dữ liệu và email
-├── database/       # Tệp SQL khởi tạo cơ sở dữ liệu
-├── doctor/         # Các trang chức năng dành cho bác sĩ
-├── forms/          # Các xử lý biểu mẫu theo template
-├── helpers/        # Hàm hỗ trợ email, PDF và bố cục portal
-├── libs/PHPMailer/ # Thư viện gửi email
-├── patient/        # Tra cứu và yêu cầu hủy lịch của bệnh nhân
-├── vendor/         # Thư viện PHP được Composer cài đặt
-├── appointment.php # Trang đặt lịch khám
-├── doctors.php     # Danh sách bác sĩ
-├── index.php       # Trang chủ
-├── login.php       # Trang đăng nhập
-├── contact.php     # Trang gửi yêu cầu hỗ trợ
-└── testimonials.php# Trang đánh giá
-```
-
-## 5. Yêu cầu môi trường
+## 2. Yêu cầu môi trường
 
 - XAMPP hoặc môi trường tương đương có Apache, PHP và MySQL/MariaDB.
 - PHP có các extension cần thiết cho PDO MySQL và mPDF, đặc biệt là `pdo_mysql`, `mbstring` và `gd`.
 - Composer để cài đặt các thư viện PHP được khai báo trong `composer.json`.
 - Trình duyệt web hiện đại.
 
-## 6. Cài đặt và chạy dự án
+## 3. Cài đặt và chạy dự án
 
 ### Bước 1: Đưa mã nguồn vào thư mục web
 
@@ -205,10 +154,23 @@ Mật khẩu:      admin123
 
 ### Bác sĩ:
 
-Tên đăng nhập: bs.tenbacsi
+Tên đăng nhập: bs.tenbacsi (có thể lấy các tên bác sĩ trong doctor.php. Ví dụ:bs.nguyenminhanh)
 Mật khẩu:      doctor123
 
-## 7. Luồng nghiệp vụ tiêu biểu
+## 4. Kiểm tra sau khi cài đặt
+
+- [ ] Trang chủ và các trang thông tin hiển thị bình thường.
+- [ ] Kết nối MySQL thành công.
+- [ ] Đăng nhập được bằng tài khoản Admin đã tạo.
+- [ ] Tạo được chuyên khoa, phòng khám và tài khoản bác sĩ.
+- [ ] Bác sĩ tạo được lịch làm việc.
+- [ ] Bệnh nhân đặt được lịch và nhận mã tra cứu.
+- [ ] Email xác nhận đặt lịch được gửi thành công.
+- [ ] Bệnh nhân tra cứu và yêu cầu hủy lịch bằng OTP được.
+- [ ] Bác sĩ lưu được hồ sơ khám, đơn thuốc và gửi được PDF kết quả.
+- [ ] Khách truy cập gửi được đánh giá.
+
+## 5. Luồng nghiệp vụ tiêu biểu
 
 ### Đặt lịch khám
 
@@ -233,31 +195,4 @@ Mật khẩu:      doctor123
 3. Hoàn tất lượt khám.
 4. Hệ thống tạo PDF tổng hợp và gửi đến email bệnh nhân.
 5. Hệ thống lưu trạng thái gửi kết quả để theo dõi hoặc thử gửi lại khi cần.
-
-## 8. Kiểm tra sau khi cài đặt
-
-- [ ] Trang chủ và các trang thông tin hiển thị bình thường.
-- [ ] Kết nối MySQL thành công.
-- [ ] Đăng nhập được bằng tài khoản Admin đã tạo.
-- [ ] Tạo được chuyên khoa, phòng khám và tài khoản bác sĩ.
-- [ ] Bác sĩ tạo được lịch làm việc.
-- [ ] Bệnh nhân đặt được lịch và nhận mã tra cứu.
-- [ ] Email xác nhận đặt lịch được gửi thành công.
-- [ ] Bệnh nhân tra cứu và yêu cầu hủy lịch bằng OTP được.
-- [ ] Bác sĩ lưu được hồ sơ khám, đơn thuốc và gửi được PDF kết quả.
-- [ ] Khách truy cập gửi được đánh giá.
-
-## 9. Phạm vi hiện tại và lưu ý
-
-- Bệnh nhân đặt lịch và tra cứu lịch bằng thông tin xác minh, không cần tài khoản bệnh nhân.
-- Các chức năng xét nghiệm và tiêm ngừa hiện có trang giao diện giới thiệu/đăng ký; chưa được tích hợp thành quy trình đặt lịch và quản lý riêng như chức năng đặt lịch khám.
-- Biểu mẫu liên hệ trên trang `contact.html` chưa được kết nối hoàn chỉnh với dịch vụ gửi email hoặc chức năng lưu dữ liệu.
-- Cần cấu hình SMTP hợp lệ để sử dụng các chức năng gửi email.
-- Cần cài Composer dependencies để tạo PDF kết quả khám.
-- Đây là sản phẩm phục vụ học tập và trình diễn quy trình quản lý phòng khám. Trước khi triển khai thực tế cần rà soát bảo mật, phân quyền, sao lưu, bảo vệ dữ liệu cá nhân và kiểm thử toàn bộ nghiệp vụ.
-
-## 10. Tác giả và mục đích
-
-Dự án được xây dựng nhằm thực hành phát triển ứng dụng web PHP kết nối MySQL, xử lý nghiệp vụ đặt lịch khám, quản lý lịch làm việc, hồ sơ khám bệnh, đơn thuốc và phân quyền người dùng.
-
 
