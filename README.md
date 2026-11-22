@@ -196,6 +196,18 @@ Các địa chỉ thường dùng:
 - Đánh giá: `/testimonials.php`
 - Đăng nhập: `/login.php`
 
+## bonus 6. Các tài khoản admin và bác sĩ
+
+### ADMIN
+
+Tên đăng nhập: admin
+Mật khẩu:      admin123
+
+### Bác sĩ:
+
+Tên đăng nhập: bs.tenbacsi
+Mật khẩu:      doctor123
+
 ## 7. Luồng nghiệp vụ tiêu biểu
 
 ### Đặt lịch khám
